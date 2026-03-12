@@ -15,16 +15,22 @@ const db = new sqlite3.Database(dbPath, (err) => {
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT UNIQUE,
             password TEXT,
-            role TEXT CHECK(role IN ('rider', 'driver'))
+            role TEXT CHECK(role IN ('rider', 'driver')),
+            loyalty_points INTEGER DEFAULT 0
         )`, (err) => {
             if (err) {
                 // Table already created
             } else {
                 // Insert default users
-                const insert = 'INSERT OR IGNORE INTO users (username, password, role) VALUES (?,?,?)';
-                db.run(insert, ["Guru", bcrypt.hashSync("123456", 10), "rider"]);
-                db.run(insert, ["Driver1", bcrypt.hashSync("password", 10), "driver"]);
+                const insert = 'INSERT OR IGNORE INTO users (username, password, role, loyalty_points) VALUES (?,?,?,?)';
+                db.run(insert, ["Guru", bcrypt.hashSync("123456", 10), "rider", 0]);
+                db.run(insert, ["Driver1", bcrypt.hashSync("password", 10), "driver", 0]);
             }
+            
+            // Migration for existing table
+            db.run(`ALTER TABLE users ADD COLUMN loyalty_points INTEGER DEFAULT 0`, (alterErr) => {
+                // Ignore error if column already exists
+            });
         });
 
         // Drivers table (extra details for drivers)

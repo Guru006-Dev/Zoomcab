@@ -9,6 +9,8 @@ const riderRoutes = require('./routes/rider');
 const driverRoutes = require('./routes/driver');
 const chatbotRoutes = require('./chatbot/chatbotRoutes');
 const db = require('./database');
+const LoyaltyService = require('./loyaltyService');
+const loyaltyRoutes = require('./routes/loyalty');
 
 const app = express();
 const server = http.createServer(app);
@@ -22,11 +24,16 @@ const io = new Server(server, {
 app.use(cors());
 app.use(bodyParser.json());
 
+// Initialize Loyalty Service
+const loyaltyService = new LoyaltyService(io);
+loyaltyService.init();
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/rider', riderRoutes(io)); // pass io for real-time updates
 app.use('/api/driver', driverRoutes(io));
 app.use('/api/chatbot', chatbotRoutes);
+app.use('/api/loyalty', loyaltyRoutes(loyaltyService));
 
 // Middleware for errors
 app.use((err, req, res, next) => {
