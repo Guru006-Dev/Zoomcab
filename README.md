@@ -144,3 +144,6 @@ GEMINI_API_KEY=your_actual_key_here
 ---
 
 *Zoomcab - Scalable. Reliable. Distributed.*
+=======
+# Zoomcab
+>>>>>>> f63a5d5 (Implement Loyalty & Rewards Service)
