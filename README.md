@@ -56,19 +56,17 @@ $$d = 2r \arcsin\left(\sqrt{\sin^2\left(\frac{\phi_2 - \phi_1}{2}\right) + \cos(
 This ensures that a 5km ride is actually 5km on the map, not a flat-plane approximation.
 
 ### 📈 Surge Pricing Model
-Prices fluctuate dynamically based on the **Demand-Supply Ratio ($K$)**:
 
-\[
-Price = Base\ Fare \times \text{Multiplier}(K)
-\]
+Prices fluctuate dynamically based on the **Demand-Supply Ratio (K):**
+
+**Price = Base Fare × Multiplier(K)**
 
 Where
 
-\[
-K = \frac{\text{Active\_Riders}}{\text{Available\_Drivers} + 1}
-\]
+**K = Active_Riders / (Available_Drivers + 1)**
 
 within a specific geo-hash region.
+
 ---
 
 ## 🤖 AI Features (Powered by Google Gemini)
