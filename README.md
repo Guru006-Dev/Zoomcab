@@ -57,11 +57,18 @@ This ensures that a 5km ride is actually 5km on the map, not a flat-plane approx
 
 ### 📈 Surge Pricing Model
 Prices fluctuate dynamically based on the **Demand-Supply Ratio ($K$)**:
-$$Price = Base\ Fare \times \text{Multiplier}(K)$$
-Where 
-$K = \frac{\text{Active\_Riders}}{\text{Available\_Drivers} + 1}$ 
-within a specific geo-hash region.
 
+\[
+Price = Base\ Fare \times \text{Multiplier}(K)
+\]
+
+Where
+
+\[
+K = \frac{\text{Active\_Riders}}{\text{Available\_Drivers} + 1}
+\]
+
+within a specific geo-hash region.
 ---
 
 ## 🤖 AI Features (Powered by Google Gemini)
