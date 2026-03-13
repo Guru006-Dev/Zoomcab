@@ -1,6 +1,16 @@
 import { motion } from 'framer-motion';
 import { Trophy, Lock } from 'lucide-react';
 
+/**
+ * Static array defining the list of possible badges and achievements.
+ * Each badge contains:
+ * - id: unique identifier
+ * - name: display name of the badge
+ * - icon: emoji representation
+ * - description: task required to unlock
+ * - unlocked: boolean status
+ * - progress: completion percentage (0-100)
+ */
 const BADGES = [
     { id: 1, name: 'First Ride', icon: '🏃', description: 'Complete your first ride', unlocked: true, progress: 100 },
     { id: 2, name: 'Frequent Rider', icon: '🔥', description: 'Take 10 rides', unlocked: true, progress: 100 },
@@ -10,12 +20,22 @@ const BADGES = [
     { id: 6, name: '5-Star Member', icon: '⭐', description: 'Maintain 5.0 rating for 20 rides', unlocked: true, progress: 100 },
 ];
 
+/**
+ * Badges Component
+ * 
+ * Displays a visual grid of user achievements.
+ * Features:
+ * - Unlocked badges show with full color and a trophy ribbon glow.
+ * - Locked badges are dimmed, show a lock icon, and display a progress bar.
+ * - Framer Motion is used for entry animations.
+ */
 const Badges = () => {
+    // Calculate the number of unlocked badges for the header count
     const unlockedCount = BADGES.filter(b => b.unlocked).length;
 
     return (
         <div className="space-y-4">
-            {/* Header */}
+            {/* Header section with Trophy icon and unlocked count */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     <Trophy size={20} className="text-yellow-400" />
@@ -26,7 +46,7 @@ const Badges = () => {
                 </div>
             </div>
 
-            {/* Badge Grid */}
+            {/* Grid layout for displaying individual badge items */}
             <div className="grid grid-cols-3 gap-3">
                 {BADGES.map((badge, index) => (
                     <motion.div
@@ -39,7 +59,11 @@ const Badges = () => {
                                 : 'bg-black/20 border-white/5 opacity-60'
                             }`}
                     >
-                        {/* Badge Icon */}
+                        {/* 
+                            Badge Icon Display:
+                            - If unlocked: Show original emoji
+                            - If locked: Blur the emoji and overlay a Lock icon
+                        */}
                         <div className="text-4xl mb-2 relative">
                             {badge.unlocked ? (
                                 badge.icon
@@ -51,11 +75,14 @@ const Badges = () => {
                             )}
                         </div>
 
-                        {/* Badge Name */}
+                        {/* Title and Description */}
                         <div className="text-xs font-bold text-white mb-1">{badge.name}</div>
                         <div className="text-[10px] text-gray-400 leading-tight">{badge.description}</div>
 
-                        {/* Progress Bar (for locked badges) */}
+                        {/* 
+                            Progress Bar: Only visible for badges that have not been unlocked yet.
+                            Uses a gradient fill tracking the 'progress' value.
+                        */}
                         {!badge.unlocked && (
                             <div className="mt-2">
                                 <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
@@ -68,7 +95,10 @@ const Badges = () => {
                             </div>
                         )}
 
-                        {/* Unlocked Badge Glow */}
+                        {/* 
+                            Success Indicator: Green trophy badge in the top-right corner
+                            indicating the achievement is fully secured.
+                        */}
                         {badge.unlocked && (
                             <div className="absolute -top-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
                                 <Trophy size={12} className="text-white" />
