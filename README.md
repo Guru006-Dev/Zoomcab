@@ -1,7 +1,6 @@
 # 🚖 Zoomcab — High-Performance Distributed Ride-Hailing
 
-![Zoomcab Premium Mockup](<img width="640" height="640" alt="zoomcab_premium_mockup_1773397647374" src="https://github.com/user-attachments/assets/6a57ca9c-f13b-4242-bab0-6319e6cdc9f2" />
-)
+
 
 Zoomcab is a distributed, high-availability ride-hailing platform engineered for the modern web. It combines **Distributed Computing Patterns**, **Real-time Geospatial Logic**, and **Generative AI** into a premium "Glassmorphism" interface.
 
