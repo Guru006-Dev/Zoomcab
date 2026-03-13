@@ -57,8 +57,10 @@ This ensures that a 5km ride is actually 5km on the map, not a flat-plane approx
 
 ### 📈 Surge Pricing Model
 Prices fluctuate dynamically based on the **Demand-Supply Ratio ($K$)**:
-$$Price = Base\_Fare \times \text{Multiplier}(K)$$
-Where $K = \frac{\text{Active\_Riders}}{\text{Available\_Drivers} + 1}$ within a specific geo-hash region.
+$$Price = Base\ Fare \times \text{Multiplier}(K)$$
+Where 
+$K = \frac{\text{Active\_Riders}}{\text{Available\_Drivers} + 1}$ 
+within a specific geo-hash region.
 
 ---
 
@@ -145,5 +147,3 @@ GEMINI_API_KEY=your_actual_key_here
 
 *Zoomcab - Scalable. Reliable. Distributed.*
 =======
-# Zoomcab
->>>>>>> f63a5d5 (Implement Loyalty & Rewards Service)
