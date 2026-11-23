@@ -18,6 +18,7 @@ const ratingRoutes = require('./routes/rating');
 const RideMatchingService = require('./rideMatchingService');
 const LeaderElection = require('./leaderElection');
 const ServiceRegistry = require('./serviceRegistry');
+const { createAdapter } = require('@socket.io/redis-adapter');
 
 const { userRoom } = RideMatchingService;
 
@@ -28,6 +29,8 @@ const io = new Server(server, {
 });
 
 app.use(cors({ origin: config.corsOrigin }));
+// Lets you see which instance served a request when running behind the load balancer.
+app.use((req, res, next) => { res.set('X-Served-By', config.instanceId); next(); });
 app.use(bodyParser.json());
 
 // Initialize Services
@@ -73,6 +76,15 @@ redis.on('ready', async () => {
     if (clusterStarted) return;
     clusterStarted = true;
     try {
+        // Redis adapter: an emit to `user:42` on this instance reaches user 42's socket
+        // even when it is connected to another instance.
+        const pubClient = redis.duplicate({ enableOfflineQueue: true });
+        const subClient = redis.duplicate({ enableOfflineQueue: true });
+        pubClient.on('error', () => { });
+        subClient.on('error', () => { });
+        io.adapter(createAdapter(pubClient, subClient));
+        console.log('[CLUSTER] Socket.IO Redis adapter attached');
+
         await registry.register();
         await leader.start();
     } catch (err) {

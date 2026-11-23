@@ -2,13 +2,17 @@ const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const bcrypt = require('bcryptjs');
 
-const dbPath = path.resolve(__dirname, 'zoomcab.db');
+// DB_PATH lets several instances share one database file (see docker-compose.yml).
+const dbPath = process.env.DB_PATH || path.resolve(__dirname, 'zoomcab.db');
 
 const db = new sqlite3.Database(dbPath, (err) => {
     if (err) {
         console.error('Error opening database ' + dbPath + ': ' + err.message);
     } else {
-        console.log('Connected to the SQLite database.');
+        console.log('Connected to the SQLite database at ' + dbPath);
+        // Several processes may write at once: wait for locks instead of failing, and use WAL.
+        db.configure('busyTimeout', 5000);
+        db.run('PRAGMA journal_mode = WAL');
 
         // Users table
         db.run(`CREATE TABLE IF NOT EXISTS users (
