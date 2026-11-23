@@ -13,6 +13,8 @@ x-api: &api
     REDIS_PORT: "6379"
     DB_PATH: /data/zoomcab.db
     DEMO_MODE: ${DEMO_MODE:-true}
+    # Local demo cluster: create the demo logins. Set to false for anything public.
+    SEED_DEMO_USERS: ${SEED_DEMO_USERS:-true}
     GEMINI_API_KEY: ${GEMINI_API_KEY:-}
   volumes:
     - db-data:/data
