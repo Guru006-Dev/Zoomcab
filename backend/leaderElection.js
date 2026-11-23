@@ -76,25 +76,33 @@ class LeaderElection {
     }
 
     _startHeartbeat() {
+        if (this.heartbeatTimer) clearInterval(this.heartbeatTimer);
         this.heartbeatTimer = setInterval(async () => {
-            if (this.isLeader) {
+            if (!this.isLeader) return;
+            try {
                 await redis.set(
                     `${this.serviceName}:heartbeat:${this.instanceId}`,
                     'alive', 'EX', LEADER_TTL
                 );
+            } catch (err) {
+                // Redis blip: the TTL gives us LEADER_TTL seconds before followers take over.
             }
         }, HEARTBEAT_INTERVAL);
     }
 
     _startMonitoring() {
+        if (this.monitorTimer) clearInterval(this.monitorTimer);
         this.monitorTimer = setInterval(async () => {
             if (this.isLeader) return; // Leaders don't monitor themselves
-
-            const leaderAlive = await redis.get(`${this.serviceName}:heartbeat:${this.leaderId}`);
-            if (!leaderAlive) {
-                console.log(`[LEADER] Leader ${this.leaderId} is DEAD. Starting election...`);
-                await this.attemptElection();
-                if (this.isLeader) this._startHeartbeat();
+            try {
+                const leaderAlive = await redis.get(`${this.serviceName}:heartbeat:${this.leaderId}`);
+                if (!leaderAlive) {
+                    console.log(`[LEADER] Leader ${this.leaderId} is DEAD. Starting election...`);
+                    await this.attemptElection();
+                    if (this.isLeader) this._startHeartbeat();
+                }
+            } catch (err) {
+                // Redis unreachable: keep the last known leader and retry next tick.
             }
         }, HEARTBEAT_INTERVAL);
     }

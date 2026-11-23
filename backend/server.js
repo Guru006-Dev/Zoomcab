@@ -1,43 +1,61 @@
-require('dotenv').config();
+const config = require('./config');
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const http = require('http');
-const { Server } = require("socket.io");
+const jwt = require('jsonwebtoken');
+const { Server } = require('socket.io');
 const authRoutes = require('./routes/auth');
 const riderRoutes = require('./routes/rider');
 const driverRoutes = require('./routes/driver');
 const chatbotRoutes = require('./chatbot/chatbotRoutes');
-const db = require('./database');
+const dbAsync = require('./utils/dbAsync');
+const redis = require('./redisClient');
 const LoyaltyService = require('./loyaltyService');
 const loyaltyRoutes = require('./routes/loyalty');
 const RatingService = require('./ratingService');
 const ratingRoutes = require('./routes/rating');
+const RideMatchingService = require('./rideMatchingService');
+const LeaderElection = require('./leaderElection');
+const ServiceRegistry = require('./serviceRegistry');
+
+const { userRoom } = RideMatchingService;
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
-    cors: {
-        origin: "*", // allow all for now, tighten later
-        methods: ["GET", "POST"]
-    }
+    cors: { origin: config.corsOrigin, methods: ['GET', 'POST'] },
 });
 
-app.use(cors());
+app.use(cors({ origin: config.corsOrigin }));
 app.use(bodyParser.json());
 
 // Initialize Services
+const matchingService = new RideMatchingService(io);
 const loyaltyService = new LoyaltyService(io);
 loyaltyService.init();
 const ratingService = new RatingService();
+const leader = new LeaderElection(config.instanceId, 'ride-matching');
+const registry = new ServiceRegistry('api', require('os').hostname(), config.port);
 
 // Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/rider', riderRoutes(io)); // pass io for real-time updates
-app.use('/api/driver', driverRoutes(io));
+app.use('/api/rider', riderRoutes(matchingService));
+app.use('/api/driver', driverRoutes(matchingService));
 app.use('/api/chatbot', chatbotRoutes);
 app.use('/api/loyalty', loyaltyRoutes(loyaltyService));
 app.use('/api/rating', ratingRoutes(ratingService));
+
+// Which instance answered, who leads the cluster, and whether Redis is up.
+app.get('/api/health', (req, res) => {
+    res.json({
+        instanceId: config.instanceId,
+        redis: redis.isReady() ? 'connected' : 'unavailable',
+        leader: leader.leaderId,
+        isLeader: leader.isLeader,
+        demoMode: config.demoMode,
+    });
+});
 
 // Middleware for errors
 app.use((err, req, res, next) => {
@@ -45,128 +63,93 @@ app.use((err, req, res, next) => {
     res.status(500).send('Something broke!');
 });
 
-const PORT = process.env.PORT || 5000;
-
-server.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+server.listen(config.port, () => {
+    console.log(`Server ${config.instanceId} is running on port ${config.port}`);
 });
 
+// Cluster membership needs Redis. Join once it's reachable; run fine without it.
+let clusterStarted = false;
+redis.on('ready', async () => {
+    if (clusterStarted) return;
+    clusterStarted = true;
+    try {
+        await registry.register();
+        await leader.start();
+    } catch (err) {
+        clusterStarted = false;
+        console.warn('[CLUSTER] Could not join cluster:', err.message);
+    }
+});
+
+const shutdown = async () => {
+    try { await Promise.all([leader.stop(), registry.deregister()]); } catch (e) { /* Redis may be gone */ }
+    process.exit(0);
+};
+process.on('SIGINT', shutdown);
+process.on('SIGTERM', shutdown);
+
 // Socket.IO Handling
+// Every authenticated socket joins exactly one room: `user:<id>`. All ride events are
+// sent to those rooms, so riders and drivers only ever see their own rides.
 io.on('connection', (socket) => {
-    console.log('a user connected', socket.id);
+    const authenticate = (token) => {
+        try {
+            socket.data.user = jwt.verify(token, config.jwtSecret);
+            socket.join(userRoom(socket.data.user.id));
+            return true;
+        } catch (e) {
+            return false;
+        }
+    };
 
-    // Join rooms based on role/id
-    socket.on('join', (data) => {
-        socket.join(String(data.room)); // Ensure room is a string
-        console.log(`User ${socket.id} joined room ${data.room}`);
-    });
+    if (socket.handshake.auth?.token) authenticate(socket.handshake.auth.token);
 
-    // Handle location updates from drivers
-    socket.on('updateLocation', (data) => {
-        console.log(`[SOCKET] updateLocation from ${data.driverId}: ${data.lat}, ${data.lng}`);
-        // Broadcast to riders looking for drivers (or specific rider if matched)
-        io.emit('driverLocationUpdate', data); // rudimentary broadcast
-        // Update DB
-        if (data.driverId) {
-            db.run(`INSERT OR REPLACE INTO drivers (user_id, latitude, longitude, status) VALUES (?, ?, ?, ?)`,
-                [data.driverId, data.lat, data.lng, 'available'], (err) => {
-                    if (err) console.error(err);
-                });
+    socket.on('join', (data = {}) => {
+        if (!authenticate(data.token)) {
+            socket.emit('authError', { message: 'Invalid or missing token' });
         }
     });
 
-    // Mock Ride Acceptance from Driver to Rider
-    socket.on('mockDriverAssigned', (data) => {
-        console.log(`[SOCKET] Driver manually accepted a mocked test ride!`);
-        io.emit('rideAccepted', {
-            rideId: data.rideId || `mock-${Date.now()}`,
-            driverId: data.driverId || 'mock-dr-1',
-            status: 'accepted'
-        });
+    // Driver location: identity comes from the verified token, never from the payload.
+    socket.on('updateLocation', async (data = {}) => {
+        const user = socket.data.user;
+        if (!user || user.role !== 'driver') return;
+        if (typeof data.lat !== 'number' || typeof data.lng !== 'number') return;
+        try {
+            await matchingService.updateDriverLocation(user.id, data.lat, data.lng);
+        } catch (err) {
+            console.error('[SOCKET] updateLocation failed:', err.message);
+        }
     });
 
-    // Payment Completed Broadcast
-    socket.on('payment_completed_broadcast', (data) => {
-        console.log(`[SOCKET] Rider completed payment for ride: ${data.rideId}`);
-        io.emit('paymentCompleted', data);
+    // Rider tells their driver payment went through.
+    socket.on('payment_completed_broadcast', async (data = {}) => {
+        const user = socket.data.user;
+        if (!user || !data.rideId) return;
+        const ride = await dbAsync.get(`SELECT rider_id, driver_id FROM rides WHERE id = ?`, [data.rideId]).catch(() => null);
+        if (ride && ride.rider_id === user.id && ride.driver_id) {
+            io.to(userRoom(ride.driver_id)).emit('paymentCompleted', { rideId: data.rideId });
+        }
     });
 
-    // Mock Ride Broadcast for Demo Purposes
-    socket.on('ride_requested_broadcast', (data) => {
-        console.log(`[SOCKET] Broadcasting mock ride attempt to all drivers.`);
+    // DEMO MODE: lets one person test the rider flow with no driver online.
+    // If the ride is still pending after a few seconds, a simulated driver accepts it
+    // and drives toward the pickup. Only the requesting rider sees any of it.
+    socket.on('ride_requested_broadcast', (data = {}) => {
+        if (!config.demoMode) return;
+        const rideId = data.ride?.id;
+        const target = socket.data.user ? io.to(userRoom(socket.data.user.id)) : socket;
 
-        const rideId = data.ride?.id || `mock-${Date.now()}`;
-        const driverId = 'mock-auto-dr-1';
-
-        // Emit to all connected sockets
-        io.emit('newRideRequest', data.ride || {
-            id: rideId,
-            rider: 'Guest Rider',
-            pickup: { address: 'Amrita University' },
-            dropoff: { address: 'Destination' },
-            distance: '5 km',
-            price: data.vehicle?.price || 200,
-        });
-
-        // AUTO-ACCEPT FOR SOLO TESTING
-        // If a real driver clicks accept, they will override this.
         setTimeout(async () => {
-            console.log(`[SOCKET] Auto-accepting ride ${rideId} for demo purposes`);
-            io.emit('rideAccepted', {
-                rideId: rideId,
-                driverId: driverId,
-                status: 'accepted'
-            });
-
-            // Start broadcasting mock live location for this auto driver
-            let startLoc = [76.9558, 11.0168]; // Gandhipuram driver start
-            let endLoc = [76.9006, 10.9027];   // Amrita University pickup
-
-            try {
-                // Fetch real road coordinates
-                const fetchFn = typeof fetch !== 'undefined' ? fetch : require('node-fetch');
-                const res = await fetchFn(`https://router.project-osrm.org/route/v1/driving/${startLoc[0]},${startLoc[1]};${endLoc[0]},${endLoc[1]}?overview=full&geometries=geojson`);
-                const data = await res.json();
-
-                if (data.routes?.[0]) {
-                    const coords = data.routes[0].geometry.coordinates; // [lng, lat]
-                    let step = 0;
-
-                    const simInterval = setInterval(() => {
-                        if (step >= coords.length) {
-                            clearInterval(simInterval);
-                            return;
-                        }
-                        const currentPos = coords[step];
-                        io.emit('driverLocationUpdate', {
-                            driverId,
-                            lat: currentPos[1],
-                            lng: currentPos[0]
-                        });
-
-                        // Move 3 steps along the route each tick for speed
-                        step += 3;
-                    }, 2000);
-                    return; // Successfully started real-road simulation!
-                }
-            } catch (err) {
-                console.log("OSRM routing failed, falling back to simple mock", err.message);
+            if (rideId) {
+                const ride = await dbAsync.get(`SELECT status FROM rides WHERE id = ?`, [rideId]).catch(() => null);
+                if (!ride || ride.status !== 'pending') return; // a real driver got it
             }
-
-            // Fallback: If routing fails, fly straight 🦅
-            let lat = startLoc[1];
-            let lng = startLoc[0];
-            let count = 0;
-            const simInterval = setInterval(() => {
-                count++;
-                lat -= 0.0003;
-                lng -= 0.0003;
-                io.emit('driverLocationUpdate', { driverId, lat, lng });
-
-                if (count > 600) clearInterval(simInterval);
-            }, 3000);
-
-        }, 3500); // Wait 3.5 seconds before auto-accepting
+            const driverId = 'demo-driver';
+            console.log(`[DEMO] Simulated driver accepting ride ${rideId ?? '(offline mock)'}`);
+            target.emit('rideAccepted', { rideId: rideId ?? `mock-${Date.now()}`, driverId, status: 'accepted', demo: true });
+            simulateDriverDrive(target, driverId);
+        }, 3500);
     });
 
     // AI Chatbot Auto-Replies
@@ -188,7 +171,7 @@ io.on('connection', (socket) => {
 
         // Delay the reply to feel human
         setTimeout(() => {
-            io.emit('chatReply', {
+            socket.emit('chatReply', {
                 text: reply,
                 sender: 'them',
                 timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
@@ -202,3 +185,33 @@ io.on('connection', (socket) => {
 });
 
 module.exports = app; // For testing
+
+/** Demo only: move a fake driver along a real road route toward the pickup. */
+async function simulateDriverDrive(target, driverId) {
+    const startLoc = [76.9558, 11.0168]; // Gandhipuram
+    const endLoc = [76.9006, 10.9027];   // Amrita University pickup
+    try {
+        const res = await fetch(`https://router.project-osrm.org/route/v1/driving/${startLoc[0]},${startLoc[1]};${endLoc[0]},${endLoc[1]}?overview=full&geometries=geojson`);
+        const data = await res.json();
+        const coords = data.routes?.[0]?.geometry.coordinates;
+        if (coords) {
+            let step = 0;
+            const timer = setInterval(() => {
+                if (step >= coords.length) return clearInterval(timer);
+                const [lng, lat] = coords[step];
+                target.emit('driverLocationUpdate', { driverId, lat, lng, demo: true });
+                step += 3;
+            }, 2000);
+            return;
+        }
+    } catch (err) {
+        console.log('[DEMO] OSRM routing failed, using a straight line:', err.message);
+    }
+    let [lng, lat] = startLoc;
+    let count = 0;
+    const timer = setInterval(() => {
+        lat -= 0.0003; lng -= 0.0003;
+        target.emit('driverLocationUpdate', { driverId, lat, lng, demo: true });
+        if (++count > 600) clearInterval(timer);
+    }, 3000);
+}

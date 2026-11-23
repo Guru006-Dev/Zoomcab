@@ -42,7 +42,7 @@ class LoyaltyService {
                     }
                     
                     // Notify rider of new points
-                    this.io.to(`rider:${riderId}`).emit('pointsAwarded', {
+                    this.io.to(`user:${riderId}`).emit('pointsAwarded', {
                         points,
                         totalPoints: 'Check profile' // We could fetch and send, but simpler to just notify update
                     });

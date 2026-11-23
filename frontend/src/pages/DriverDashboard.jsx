@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { socket, updateLocation, completeRide } from '../api';
+import { socket, updateLocation, completeRide, joinRealtime } from '../api';
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Power, TrendingUp, BarChart3, Coffee, Receipt, MapPin, Star, ChevronRight, Facebook, Twitter, Instagram, Github } from 'lucide-react';
@@ -93,7 +93,7 @@ const DriverDashboard = () => {
 
         const handleConnect = () => {
             setDebugInfo(p => ({ ...p, socketConnected: true, socketId: socket.id }));
-            socket.emit('join', { room: driverId });
+            joinRealtime();
             // Let everyone know this general driver is connected (maybe rider UI needs it initially)
             console.log("Emit active online state", driverId);
         };

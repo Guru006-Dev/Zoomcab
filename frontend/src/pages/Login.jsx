@@ -2,7 +2,7 @@ import { useState, Suspense, lazy } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, EyeOff } from 'lucide-react';
-import { login, register } from '../api';
+import { login, register, joinRealtime } from '../api';
 import ZoomcabLogo from '../assets/ChatGPT Image Feb 21, 2026, 09_27_37 PM.png';
 
 const Spline = lazy(() => import('@splinetool/react-spline'));
@@ -79,6 +79,9 @@ export default function Login() {
             localStorage.setItem('token', token);
             localStorage.setItem('role', resRole);
             localStorage.setItem('username', username);
+            const user = data.data?.user || data.user;
+            if (user) localStorage.setItem('user', JSON.stringify(user));
+            joinRealtime();
             navigate(resRole === 'driver' ? '/driver' : '/home');
         } catch (err) {
             setError(err.response?.data?.error || err.response?.data?.message || 'Invalid credentials.');
