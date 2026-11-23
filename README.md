@@ -1,154 +1,154 @@
-# 🚖 Zoomcab — High-Performance Distributed Ride-Hailing
+# Zoomcab
 
+[![CI](https://github.com/Guru006-Dev/Zoomcab/actions/workflows/ci.yml/badge.svg)](https://github.com/Guru006-Dev/Zoomcab/actions/workflows/ci.yml)
 
+A ride-hailing app built to practise distributed-systems techniques: nearest-driver matching with
+Redis GEO, atomic driver assignment, leader election across backend instances, and real-time
+updates with Socket.IO that reach only the rider and driver of each ride. It runs as one server
+for development, or as three load-balanced instances with Docker Compose.
 
-Zoomcab is a distributed, high-availability ride-hailing platform engineered for the modern web. It combines **Distributed Computing Patterns**, **Real-time Geospatial Logic**, and **Generative AI** into a premium "Glassmorphism" interface.
+**Stack:** React 19 + Vite + Tailwind · Node.js + Express 5 · Socket.IO · Redis · SQLite ·
+Leaflet + OSRM routing · Google Gemini (concierge chatbot)
 
 ---
 
-## 🏛️ System Architecture
+## What it does
 
-Zoomcab follows a decoupled service-oriented architecture, utilizing **Redis** as a high-speed inter-process communication (IPC) layer and **Socket.io** for bidirectional real-time event streaming.
+**Riders** pick a destination on the map, choose a vehicle and request a ride. The nearest free
+driver gets the offer; the rider sees the driver accept and then move toward the pickup in real
+time, pays, and rates the trip.
 
-```mermaid
-graph TD
-    A[Frontend React + Vite] <-->|Socket.io / REST| B[Backend Node.js Cluster]
-    B <-->|Geo-Queries / Pub-Sub| C[(Redis Cache)]
-    B <-->|Persistence| D[(SQLite DB)]
-    B -->|Generative AI| E[Google Gemini]
-    B -->|Map Routing| F[OSRM Engine]
+**Drivers** go online, share their location, and get ride offers with a 15-second countdown to
+accept or decline. Declining passes the ride to the next nearest driver.
+
+With nobody else online you can still try the rider flow: **demo mode** (on by default in
+development) has a simulated driver accept after a few seconds and drive along a real road route.
+
+## How the distributed parts work
+
+| Problem | How Zoomcab handles it | Where |
+|---|---|---|
+| Find the nearest free driver | Drivers' positions are kept in a Redis GEO index; `GEORADIUS` returns candidates sorted by distance. Without Redis it falls back to a Haversine scan over SQLite. | `backend/rideMatchingService.js` |
+| Never offer one driver two rides | A Lua script reserves the driver in Redis only if they are still `available`, and a conditional `UPDATE ... WHERE status = 'available'` does the same in SQLite. | `_reserveDriver` |
+| Two drivers accept the same ride | `UPDATE rides ... WHERE id = ? AND status = 'pending'` is atomic, so exactly one driver gets `200` and the other gets `409`. | `acceptRide` |
+| Double-tapping "Book" | A per-rider lock (`SET ... NX EX 30` in Redis, in-memory without it). | `requestRide` |
+| Events must reach only the right people | Each authenticated socket joins a private `user:<id>` room. With several instances, the Socket.IO Redis adapter forwards room events between them. | `backend/server.js` |
+| Spoofed driver locations | The driver's identity comes from the JWT on the socket, never from the message payload. | `updateLocation` handler |
+| Coordinating instances | Bully-style leader election: the highest live instance id leads; followers check its Redis heartbeat (15 s TTL) every 5 s and elect a new leader when it expires. | `backend/leaderElection.js` |
+| Knowing which instances are alive | Service registry entries in Redis with TTL heartbeats. | `backend/serviceRegistry.js` |
+| Reacting to ride events | Redis pub/sub event bus; the loyalty service awards points on `ride:completed`. | `backend/eventBus.js`, `backend/loyaltyService.js` |
+
+Redis is optional: if it is down, matching, locking and acceptance keep working on SQLite alone
+(single instance), and `GET /api/health` reports `"redis": "unavailable"`.
+
+## Running it
+
+### One server (development)
+
+Needs Node.js 22. Redis is optional.
+
+```bash
+cd backend
+cp .env.example .env      # optional; sensible development defaults otherwise
+npm install
+npm run dev               # http://localhost:5000
 ```
 
----
-
-## 🧠 Distributed Systems Mechanisms
-
-Zoomcab is built to solve classic distributed systems challenges:
-
-### 1. Resource Discovery (Geospatial Matching)
-- **Problem**: Finding active drivers in a dynamic 2D space.
-- **Solution**: We use **Redis Geospatial (GEO)**. Drivers heartbeat their coordinates into a geospatial index (`GEOADD`). The system queries nearby resources using `GEORADIUS` with a logarithmic complexity of **O(log(N))**.
-
-### 2. Mutual Exclusion (The "Single Assign" Problem)
-- **Problem**: Two riders matching with the same driver simultaneously.
-- **Solution**: **Distributed Locking via Lua Scripts**. We execute atomic check-and-set operations directly on the Redis engine.
-    - *Algorithm*: When a match is found, a Lua script checks if the driver's status is `available`. If yes, it atomically switches them to `matching` and returns a success token. No other process can intercept during this execution.
-
-### 3. Leader Election (Bully Algorithm)
-- **Problem**: Coordinating background tasks (like surge pricing calculation) across multiple server instances.
-- **Solution**: The **Bully Algorithm**.
-    - Each instance has a unique ID.
-    - The instance with the highest ID elects itself as the Leader.
-    - If the leader fails to heartbeat into Redis for >10 seconds, the next highest-ID instance identifies the failure and triggers a new election.
-
-### 4. Deadlock & Race Condition Prevention
-- **TTLs (Time-to-Live)**: All distributed locks and temporary "pending" states have an expiry (e.g., 30s). If a driver doesn't accept/reject within the window, the lock automatically clears, releasing the resource back to the pool.
-
----
-
-## 📐 Mathematical Models
-
-### 🏎️ Haversine Formula
-For accurate ride tracking and pricing, we don't use simple Euclidean geometry. We implement the **Haversine Formula** to account for Earth's curvature:
-
-$$d = 2r \arcsin\left(\sqrt{\sin^2\left(\frac{\phi_2 - \phi_1}{2}\right) + \cos(\phi_1) \cos(\phi_2) \sin^2\left(\frac{\lambda_2 - \lambda_1}{2}\right)}\right)$$
-
-This ensures that a 5km ride is actually 5km on the map, not a flat-plane approximation.
-
-### 📈 Surge Pricing Model
-
-Prices fluctuate dynamically based on the **Demand-Supply Ratio (K):**
-
-**Price = Base Fare × Multiplier(K)**
-
-Where
-
-**K = Active_Riders / (Available_Drivers + 1)**
-
-within a specific geo-hash region.
-
----
-
-## 🤖 AI Features (Powered by Google Gemini)
-
-Zoomcab integrates **Generative AI** to enhance the user and driver experience:
-- **Rider Concierge**: A personalized AI assistant that can suggest destinations, estimate costs, and provide local travel tips.
-- **Context-Aware Auto-Replies**: Using NLP, the driver-rider chat suggests quick replies (e.g., *"I'm at the main gate"* or *"Traffic is heavy, be there in 2 mins"*) based on the real-time conversation history.
-
----
-
-## 🛡️ Safety & Premium UX
-
-### 💎 Design System
-- **Glassmorphism**: High-end UI with backdrop blurs, gradients, and subtle borders.
-- **Micro-Animations**: Framer Motion used for smooth transitions between ride states.
-
-### 🆘 Safety First
-- **SOS Integrated**: One-tap emergency broadcast to police and emergency contacts.
-- **Live Trip Sharing**: Generates a secure tracking URL for friends to monitor your ride in real-time.
-
----
-
-## 📂 Database Schema (SQLite)
-
-| Table | Primary Key | Description |
-| :--- | :--- | :--- |
-| `users` | `id` | Auth data, usernames, and roles (Rider/Driver). |
-| `drivers` | `user_id` | Live status, vehicle type, and last known coordinates. |
-| `rides` | `id` | Records of all trips, fares, and timestamps. |
-
----
-
-## 🚀 Installation & Developer Guide
-
-### Environment Setup
-Create a `.env` file in the `/backend` directory:
-```env
-PORT=5000
-REDIS_HOST=localhost
-REDIS_PORT=6379
-GEMINI_API_KEY=your_actual_key_here
+```bash
+cd frontend
+npm install
+npm run dev               # http://localhost:5173
 ```
 
-### Running the Project
-1. **Start Redis**: Ensure `redis-server` is running.
-2. **Backend**: 
-   ```bash
-   cd backend && npm install && npm run dev
-   ```
-3. **Frontend**:
-   ```bash
-   cd frontend && npm install && npm run dev
-   ```
+Demo logins (created only outside production): **Guru / 123456** (rider) and
+**Driver1 / password** (driver). Use a private window for the second user.
 
----
+### Cluster (Docker Compose)
 
-## 📂 Project Structure
+Redis, three backend instances and nginx in front of them:
 
-### 📁 `backend/`
-- `rideMatchingService.js`: The heart of the platform. Handles geo-queries and assignment logic.
-- `leaderElection.js`: Implementation of the Bully Algorithm for cluster coordination.
-- `eventBus.js`: Redis-backed Pub/Sub for inter-service communication.
-- `database.js`: SQLite initialization and schema definitions.
-- `chatbot/`: Controllers and routes for the Gemini AI integration.
+```bash
+JWT_SECRET=$(openssl rand -hex 32) docker compose up --build   # http://localhost:8080
+```
 
-### 📁 `frontend/`
-- `src/components/PageLayout.jsx`: The core Glassmorphism wrapper.
-- `src/pages/Home.jsx`: The main rider map and destination selection.
-- `src/pages/DriverDashboard.jsx`: Real-time earnings and activity hub for drivers.
-- `src/lib/api.js`: Axios-based client with interceptors for JWT auth.
-- `src/hooks/useSocket.js`: Custom hooks for real-time state synchronization.
+See [deploy/README.md](deploy/README.md) for the checks to run, including stopping the leader
+and watching another instance take over.
 
----
+## Configuration
 
-## 🗺️ Roadmap & Distributed Future
+All settings are environment variables; [backend/.env.example](backend/.env.example) lists them.
 
-- [ ] **Raft Consensus Integration**: Moving from Bully to Raft for even stronger consistency in driver states.
-- [ ] **Sharded Redis Cluster**: Implementing horizontal scaling for the geospatial index.
-- [ ] **AI Route Optimization**: Using Gemini to predict traffic patterns and proactively reroute drivers.
-- [ ] **Blockchain Payments**: Integrating a decentralized ledger for transparent driver payouts.
+| Variable | Default | Purpose |
+|---|---|---|
+| `JWT_SECRET` | dev placeholder | **Required in production**; the server refuses to start without it |
+| `REDIS_HOST` / `REDIS_PORT` | `127.0.0.1` / `6379` | Redis connection |
+| `DB_PATH` | `backend/zoomcab.db` | SQLite file (shared by instances in Docker) |
+| `INSTANCE_ID` | `instance-<pid>` | Unique id per instance, used in leader election |
+| `DEMO_MODE` | on outside production | Simulated driver for solo testing |
+| `SEED_DEMO_USERS` | on outside production | Create the demo logins on startup |
+| `CORS_ORIGIN` | `*` | Allowed frontend origin |
+| `GEMINI_API_KEY` | — | Enables the AI concierge chat |
 
----
+## Tests
 
-*Zoomcab - Scalable. Reliable. Distributed.*
-=======
+```bash
+cd backend && npm test
+```
+
+The suite starts the real server on a random port with a throwaway database and drives it with
+HTTP calls and Socket.IO clients: nearest-driver offers, decline and re-offer, the
+simultaneous-accept race, that bystanders receive no events, that a driver can't fake another
+driver's location, access control, and config. Leader election and failover tests run when Redis
+is available.
+
+CI runs on every push and pull request: backend tests without Redis, backend tests against a real
+Redis service, and the frontend lint and build.
+
+## API
+
+| Method | Path | Who | What |
+|---|---|---|---|
+| `POST` | `/api/auth/register` | anyone | Create a rider or driver |
+| `POST` | `/api/auth/login` | anyone | Returns a JWT and the user |
+| `POST` | `/api/rider/request-ride` | rider | Create a ride and offer it to the nearest driver |
+| `GET` | `/api/rider/ride-status/:id` | rider or assigned driver | Ride details |
+| `POST` | `/api/driver/location` | driver | Update position |
+| `POST` | `/api/driver/accept-ride/:id` | driver | Accept (`409` if someone else won) |
+| `POST` | `/api/driver/reject-ride/:id` | driver | Decline; re-offers to the next driver |
+| `POST` | `/api/driver/complete-ride/:id` | assigned driver | Finish the ride |
+| `GET` | `/api/health` | anyone | Instance id, Redis status, current leader |
+
+**Socket.IO events** (authenticate with `auth: { token }`): drivers send `updateLocation`;
+riders receive `rideAccepted`, `rideUpdate`, `driverLocationUpdate`, `rideCompleted`,
+`noDriversAvailable`; drivers receive `newRideRequest`, `rideOfferWithdrawn`, `paymentCompleted`.
+
+## Project layout
+
+```
+backend/
+  server.js               Express + Socket.IO setup, rooms, demo mode, cluster startup
+  rideMatchingService.js  Request / offer / accept / decline / complete, locking, Redis GEO
+  leaderElection.js       Leader election with Redis heartbeats
+  serviceRegistry.js      Instance registry with TTL heartbeats
+  eventBus.js             Redis pub/sub
+  routes/                 auth, rider, driver, loyalty, rating
+  chatbot/                Gemini concierge
+  tests/                  Jest integration and unit tests
+frontend/src/
+  api.js                  REST client and Socket.IO connection
+  pages/                  Home (rider map), DriverDashboard, RideAcceptance, Payment, …
+deploy/                   nginx config and cluster guide
+docker-compose.yml        Redis + 3 API instances + nginx
+```
+
+## Known limitations
+
+- **SQLite is shared by all instances.** It works on one host (WAL mode, busy timeout), but it
+  is the weak point of the cluster; Postgres with PostGIS is the planned replacement.
+- **The Docker cluster has not yet been run end to end.** The Redis logic is tested in CI; the
+  three-instance setup and nginx are not.
+- **Surge pricing** (`calculateSurge`) is implemented but not yet used when pricing rides.
+- **Payments are simulated**, the **SOS button** shows an alert only, the **trip-sharing link**
+  is a placeholder, and the **in-ride chat** replies with canned, keyword-matched messages.
+- Several secondary screens are front-end only: the wallet shows sample data, and referrals,
+  expenses and the break scheduler keep their data in the browser.

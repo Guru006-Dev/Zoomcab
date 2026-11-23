@@ -40,12 +40,18 @@ const Stat = ({ label, value, sub, color, colorBg, icon: Icon, onClick }) => (
 const DriverDashboard = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const [isOnline, setIsOnline] = useState(false);
+    // Arriving from RideAcceptance with an accepted ride: start online with that ride active.
+    // (The route remounts this page, so reading location.state once is enough.)
+    const arrivedWithRide = Boolean(location.state?.rideActive && location.state?.rideId);
+    const [isOnline, setIsOnline] = useState(arrivedWithRide);
     const [position, setPosition] = useState([11.0168, 76.9558]);
-    const [driverId, setDriverId] = useState(null);
-    const [driverName, setDriverName] = useState('Driver');
+    // Logged-in driver from localStorage, or a demo identity for trying the UI without login.
+    const [{ driverId, driverName }] = useState(() => {
+        const u = JSON.parse(localStorage.getItem('user') || 'null');
+        return u ? { driverId: u.id, driverName: u.username } : { driverId: 'driver-demo-123', driverName: 'Demo Driver' };
+    });
     const [debugInfo, setDebugInfo] = useState({ socketConnected: false, socketId: null, lastUpdate: null });
-    const [activeRide, setActiveRide] = useState(null);
+    const [activeRide, setActiveRide] = useState(arrivedWithRide ? location.state : null);
     const [isPaid, setIsPaid] = useState(false);
     const [routeCoords, setRouteCoords] = useState([]);
 
@@ -66,25 +72,6 @@ const DriverDashboard = () => {
             getRoute();
         }
     }, [activeRide]);
-
-    useEffect(() => {
-        if (location.state?.rideActive && location.state?.rideId) {
-            setActiveRide(location.state);
-            setIsOnline(true);
-        }
-    }, [location]);
-
-    useEffect(() => {
-        const u = JSON.parse(localStorage.getItem('user'));
-        if (u) {
-            setDriverId(u.id);
-            setDriverName(u.username);
-        } else {
-            // Fallback for testing UI without login
-            setDriverId('driver-demo-123');
-            setDriverName('Demo Driver');
-        }
-    }, []);
 
     useEffect(() => {
         if (!driverId) return;
@@ -113,7 +100,7 @@ const DriverDashboard = () => {
             }
         };
 
-        const handlePaymentCompleted = (data) => {
+        const handlePaymentCompleted = () => {
             setIsPaid(true);
         };
 

@@ -43,7 +43,6 @@ export default function PageLayout({ title, subtitle, children, headerRight, noP
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     // Ensure we capture "Guru One" correctly whether it's stored in user.username, user.name, or a flat 'name' / 'username'
     const username = user?.username || user?.name || localStorage.getItem('username') || localStorage.getItem('name') || 'Rider';
-    const role = localStorage.getItem('role') || 'rider';
 
     // Determine whether to show driver or rider layout based on the current page,
     // solving the issue where shared localStorage makes rider pages look like driver pages.

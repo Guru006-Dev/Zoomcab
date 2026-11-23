@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion';
 import { MapPin, Navigation as NavIcon, Clock, Route, AlertCircle } from 'lucide-react';
 
 const NavigationPlaceholder = ({ destination }) => {
