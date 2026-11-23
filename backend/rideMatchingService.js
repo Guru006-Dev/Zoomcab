@@ -1,39 +1,37 @@
 /**
- * DISTRIBUTED RIDE MATCHING SERVICE
- * - Geo-spatial nearest driver search using Redis GEO
- * - Distributed locking to prevent double-assignment
- * - Atomic driver status updates via Lua scripts
- * - Handles multiple concurrent ride requests
- * - Accept/Reject flow with rider-specific notifications
+ * RIDE MATCHING SERVICE
+ *
+ * The single place where rides are requested, offered, accepted, rejected and completed.
+ *
+ * - Nearest-driver search with Redis GEO (falls back to a Haversine scan over SQLite when Redis is down)
+ * - Per-rider distributed lock so a double-tap can't create two rides
+ * - Atomic driver reservation (Redis Lua when available, conditional SQL UPDATE otherwise)
+ * - Atomic acceptance: a conditional SQL UPDATE guarantees only one driver can win a ride,
+ *   even across several backend instances sharing the database
+ * - Notifications go only to the people involved (Socket.IO rooms), never to everyone
  */
 const redis = require('./redisClient');
-const db = require('../database');
-const { calculateDistance } = require('../utils/geo');
+const dbAsync = require('./utils/dbAsync');
+const { calculateDistance } = require('./utils/geo');
 const EventBus = require('./eventBus');
 
-// ─── Lua script: Atomically check driver availability and assign ───
-const ASSIGN_DRIVER_LUA = `
-local driverKey = KEYS[1]
-local status = redis.call('HGET', driverKey, 'status')
-if status ~= 'available' then
-    return {0, 'driver_busy'}
-end
-redis.call('HSET', driverKey, 'status', 'matched')
-redis.call('HSET', driverKey, 'currentRide', ARGV[1])
-return {1, 'assigned'}
-`;
+const SEARCH_RADIUS_KM = parseFloat(process.env.MATCH_RADIUS_KM || '50');
+const RIDE_TTL_SECONDS = 3600;
 
-// ─── Lua script: Atomically accept a ride (only one driver wins) ───
-const ACCEPT_RIDE_LUA = `
-local rideKey = 'ride:' .. ARGV[1]
-local status = redis.call('HGET', rideKey, 'status')
-if status ~= 'requested' and status ~= 'pending' then
-    return {0, 'already_accepted'}
+/** Room every user joins on connect (see server.js `join`). */
+const userRoom = (userId) => `user:${userId}`;
+
+// Atomically reserve a driver: only succeeds if the driver is still available.
+const RESERVE_DRIVER_LUA = `
+local status = redis.call('HGET', KEYS[1], 'status')
+if status == false then
+    return 2 -- Redis doesn't know this driver yet; SQLite decides
 end
-redis.call('HSET', rideKey, 'status', 'accepted')
-redis.call('HSET', rideKey, 'driverId', ARGV[2])
-redis.call('HSET', 'driver:' .. ARGV[2], 'status', 'busy')
-return {1, 'accepted'}
+if status ~= 'available' then
+    return 0
+end
+redis.call('HSET', KEYS[1], 'status', 'matched', 'currentRide', ARGV[1])
+return 1
 `;
 
 class RideMatchingService {
@@ -41,331 +39,330 @@ class RideMatchingService {
         this.io = io;
     }
 
-    /**
-     * MATCH RIDE — Find nearest available driver using Redis GEO
-     * Uses distributed lock to prevent double-assignment race conditions
-     */
-    async matchRide(rideRequest) {
-        const { riderId, pickup, dropoff, vehicleType, price } = rideRequest;
-        const lockKey = `lock:ride:matching:${riderId}`;
+    // ─── Public API ──────────────────────────────────────────────────────────
 
-        // ── DISTRIBUTED LOCK ── prevent same rider from double-requesting
-        const lockAcquired = await redis.set(lockKey, 'matching', 'NX', 'EX', 30);
-        if (!lockAcquired) {
-            throw new Error('Ride request already being processed');
+    /**
+     * Create a ride and offer it to the nearest available driver.
+     * Returns the ride; `ride.offeredTo` is the driver id, or null if nobody was free.
+     */
+    async requestRide({ riderId, pickup, dropoff, vehicleType, price }) {
+        const lockKey = `lock:ride:request:${riderId}`;
+        const locked = await this._acquireLock(lockKey, 30);
+        if (!locked) {
+            const err = new Error('Ride request already being processed');
+            err.status = 409;
+            throw err;
         }
 
         try {
-            // 1. Query drivers from Redis GEO index
-            let nearbyDrivers = [];
-            try {
-                // Returns array of [ [driverId, distance], ... ]
-                const geoResults = await redis.georadius(
-                    'DriverLocations',
-                    pickup.lng, pickup.lat,
-                    50, 'km',
-                    'WITHDIST', 'ASC'
-                );
+            const { lastID: rideId } = await dbAsync.run(
+                `INSERT INTO rides (rider_id, pickup_lat, pickup_lng, dropoff_lat, dropoff_lng,
+                                    pickup_address, dropoff_address, status, fare, vehicle_type)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?)`,
+                [riderId, pickup.lat, pickup.lng, dropoff?.lat ?? null, dropoff?.lng ?? null,
+                    pickup.address || '', dropoff?.address || '', price, vehicleType]
+            );
 
-                for (const geo of geoResults) {
-                    const driverId = typeof geo[0] === 'string' ? geo[0] : geo[0].toString();
-                    const dist = geo[1];
+            const tripKm = dropoff?.lat != null
+                ? calculateDistance(pickup.lat, pickup.lng, dropoff.lat, dropoff.lng)
+                : 0;
 
-                    const data = await redis.hgetall(`driver:${driverId}`);
-                    if (data && data.status === 'available') {
-                        nearbyDrivers.push([driverId, parseFloat(dist).toFixed(2)]);
-                    }
-                }
-            } catch (redisErr) {
-                console.log('[MATCH] Redis GEO driver lookup failed, falling back to DB:', redisErr.message);
-            }
+            const ride = {
+                id: rideId,
+                riderId,
+                pickup,
+                dropoff,
+                vehicleType,
+                price,
+                status: 'pending',
+                distance: tripKm.toFixed(1),
+                duration: Math.round(tripKm * 3), // rough: 3 min per km
+                offeredTo: null,
+            };
 
-            // 2. Fallback: query from PostgreSQL if Redis has no drivers
-            if (nearbyDrivers.length === 0) {
-                return await this._matchFromDatabase(rideRequest);
-            }
+            await this._cacheRide(ride);
+            await EventBus.publish('ride:requested', { rideId, riderId, pickup, dropoff, price });
 
-            // 3. Get rejected drivers for this ride (if re-matching)
-            const rejectedDrivers = await redis.smembers(`ride:rejected:${riderId}`);
-
-            // 4. Try to assign nearest available driver atomically
-            for (const [driverId, distance] of nearbyDrivers) {
-                if (rejectedDrivers.includes(driverId)) continue;
-
-                // Atomic check-and-set via Lua script
-                const result = await redis.eval(
-                    ASSIGN_DRIVER_LUA, 1,
-                    `driver:${driverId}`,
-                    `pending-${riderId}`
-                );
-
-                if (result[0] === 1) {
-                    // Driver assigned! Create ride in PostgreSQL
-                    const ride = await this._createRide(rideRequest, driverId, distance);
-
-                    // Store ride info in Redis for fast access
-                    await redis.hmset(`ride:${ride.id}`, {
-                        rideId: ride.id.toString(),
-                        riderId: riderId.toString(),
-                        driverId: driverId,
-                        status: 'requested',
-                        pickupLat: pickup.lat,
-                        pickupLng: pickup.lng,
-                        fare: price,
-                    });
-                    await redis.expire(`ride:${ride.id}`, 3600); // 1hr TTL
-
-                    // Publish event
-                    await EventBus.publish('ride:requested', {
-                        rideId: ride.id,
-                        riderId,
-                        driverId,
-                        pickup,
-                        dropoff,
-                        price,
-                    });
-
-                    // Notify specific driver via Socket.IO
-                    this.io.to(String(driverId)).emit('newRideRequest', ride);
-                    console.log(`[MATCH] Ride ${ride.id} → Driver ${driverId} (${distance}km)`);
-
-                    return ride;
-                }
-            }
-            throw new Error('All nearby drivers are busy');
+            ride.offeredTo = await this._offerToNearestDriver(ride);
+            return ride;
         } finally {
-            await redis.del(lockKey);
+            await this._releaseLock(lockKey);
         }
     }
 
     /**
-     * DRIVER ACCEPTS RIDE — atomic, only one driver wins
-     * Other pending requests to this driver are re-queued
+     * Driver accepts a ride. Exactly one driver can win: the UPDATE only matches
+     * while the ride is still pending, and SQLite applies it atomically.
      */
-    async driverAcceptRide(driverId, rideId) {
-        // Atomic accept via Lua script
-        const result = await redis.eval(ACCEPT_RIDE_LUA, 0, rideId, driverId);
+    async acceptRide(driverId, rideId) {
+        const ride = await dbAsync.get(`SELECT id, rider_id, status FROM rides WHERE id = ?`, [rideId]);
+        if (!ride) return { ok: false, status: 404, reason: 'Ride not found' };
 
-        if (result[0] === 1) {
-            // Update PostgreSQL
-            await db.run(
-                `UPDATE rides SET driver_id = $1, status = 'accepted' WHERE id = $2`,
-                [driverId, rideId]
-            );
-            await db.run(
-                `UPDATE drivers SET status = 'busy' WHERE user_id = $1`,
-                [driverId]
-            );
-
-            const rideData = await redis.hgetall(`ride:${rideId}`);
-            const riderId = rideData.riderId;
-
-            // Notify ONLY the specific rider
-            this.io.to(`rider:${riderId}`).emit('rideAccepted', {
-                rideId, driverId, status: 'accepted'
-            });
-            // Also broadcast for backwards compat
-            this.io.emit('rideAccepted', {
-                rideId, driverId, status: 'accepted'
-            });
-
-            // Publish event for Payment/Notification services
-            await EventBus.publish('ride:accepted', { rideId, driverId, riderId });
-
-            // Clear other pending ride requests from this driver's queue
-            await this._clearPendingRequests(driverId, rideId);
-
-            console.log(`[MATCH] Driver ${driverId} accepted ride ${rideId}`);
-            return { status: 'accepted', rideId, driverId };
-        }
-
-        return { status: 'failed', reason: result[1] };
-    }
-
-    /**
-     * DRIVER REJECTS RIDE — find next nearest driver
-     * Only the requesting rider gets the "searching" update
-     */
-    async driverRejectRide(driverId, rideId) {
-        // Add to rejected set
-        await redis.sadd(`ride:${rideId}:rejected`, driverId.toString());
-        // Set driver back to available
-        await redis.hset(`driver:${driverId}`, 'status', 'available');
-
-        const rideData = await redis.hgetall(`ride:${rideId}`);
-        const riderId = rideData.riderId;
-
-        // Notify ONLY this specific rider
-        this.io.to(`rider:${riderId}`).emit('rideUpdate', {
-            rideId,
-            status: 'searching',
-            message: 'Finding another driver...'
-        });
-
-        // Re-match with next available driver
-        console.log(`[MATCH] Driver ${driverId} rejected ride ${rideId}, re-matching...`);
-        try {
-            await this.matchRide({
-                riderId: parseInt(riderId),
-                pickup: { lat: parseFloat(rideData.pickupLat), lng: parseFloat(rideData.pickupLng) },
-                dropoff: {},
-                vehicleType: rideData.vehicleType || 'sedan',
-                price: parseFloat(rideData.fare),
-            });
-        } catch (err) {
-            this.io.to(`rider:${riderId}`).emit('noDriversAvailable', {
-                rideId, message: 'No drivers available. Please try again.'
-            });
-        }
-    }
-
-    /**
-     * COMPLETE RIDE — triggers payment processing via event bus
-     */
-    async completeRide(driverId, rideId) {
-        await db.run(
-            `UPDATE rides SET status = 'completed' WHERE id = $1 AND driver_id = $2`,
-            [rideId, driverId]
+        const { changes } = await dbAsync.run(
+            `UPDATE rides SET driver_id = ?, status = 'accepted' WHERE id = ? AND status = 'pending'`,
+            [driverId, rideId]
         );
-        await redis.hset(`ride:${rideId}`, 'status', 'completed');
-        await redis.hset(`driver:${driverId}`, 'status', 'available');
-        await db.run(`UPDATE drivers SET status = 'available' WHERE user_id = $1`, [driverId]);
+        if (changes === 0) return { ok: false, status: 409, reason: 'Ride already accepted' };
 
-        const rideData = await redis.hgetall(`ride:${rideId}`);
+        await this._setDriverStatus(driverId, 'busy', rideId);
+        await this._redisSafe(() => redis.hset(`ride:${rideId}`, 'status', 'accepted', 'driverId', String(driverId)));
 
-        // Publish completion event → Payment Service consumes this
-        await EventBus.publish('ride:completed', {
-            rideId,
-            driverId,
-            riderId: rideData.riderId,
-            fare: rideData.fare,
+        // Release any other driver this ride was offered to.
+        const offeredTo = await this._redisSafe(() => redis.hget(`ride:${rideId}`, 'offeredTo'));
+        if (offeredTo && String(offeredTo) !== String(driverId)) {
+            await this._setDriverStatus(offeredTo, 'available');
+            this.io.to(userRoom(offeredTo)).emit('rideOfferWithdrawn', { rideId });
+        }
+
+        const payload = { rideId: Number(rideId), driverId, status: 'accepted' };
+        this.io.to(userRoom(ride.rider_id)).emit('rideAccepted', payload);
+        await EventBus.publish('ride:accepted', { rideId, driverId, riderId: ride.rider_id });
+
+        console.log(`[MATCH] Driver ${driverId} accepted ride ${rideId}`);
+        return { ok: true, ...payload, riderId: ride.rider_id };
+    }
+
+    /** Driver declines an offer: free them up and offer the ride to the next nearest driver. */
+    async rejectRide(driverId, rideId) {
+        const ride = await this._loadRide(rideId);
+        if (!ride || ride.status !== 'pending') return { ok: false, status: 409, reason: 'Ride is no longer pending' };
+
+        await this._markRejected(rideId, driverId);
+        await this._setDriverStatus(driverId, 'available');
+
+        this.io.to(userRoom(ride.riderId)).emit('rideUpdate', {
+            rideId: ride.id, status: 'searching', message: 'Finding another driver...',
         });
 
-        this.io.emit('rideCompleted', { rideId, status: 'completed' });
+        const next = await this._offerToNearestDriver(ride);
+        console.log(`[MATCH] Driver ${driverId} rejected ride ${rideId} → ${next ? `offered to ${next}` : 'no drivers left'}`);
+        return { ok: true, offeredTo: next };
+    }
+
+    async completeRide(driverId, rideId) {
+        const ride = await dbAsync.get(`SELECT rider_id, fare FROM rides WHERE id = ? AND driver_id = ?`, [rideId, driverId]);
+        if (!ride) return { ok: false, status: 403, reason: 'Not authorized or ride not found' };
+
+        await dbAsync.run(`UPDATE rides SET status = 'completed' WHERE id = ?`, [rideId]);
+        await this._setDriverStatus(driverId, 'available');
+        await this._redisSafe(() => redis.hset(`ride:${rideId}`, 'status', 'completed'));
+
+        this.io.to(userRoom(ride.rider_id)).emit('rideCompleted', { rideId: Number(rideId), status: 'completed' });
+        await EventBus.publish('ride:completed', { rideId, driverId, riderId: ride.rider_id, fare: ride.fare });
+
         console.log(`[MATCH] Ride ${rideId} completed by driver ${driverId}`);
+        return { ok: true, rideId: Number(rideId), status: 'completed' };
     }
 
     /**
-     * UPDATE DRIVER LOCATION — stores in Redis GEO for spatial queries
+     * Store a driver's position (Redis GEO + SQLite) and forward it to the rider
+     * of the driver's active ride, if any. Never broadcast to everyone.
      */
     async updateDriverLocation(driverId, lat, lng) {
-        // Store location in Redis hash for metadata
-        await redis.hmset(`driver:${driverId}`, {
-            latitude: lat.toString(),
-            longitude: lng.toString(),
-            lastUpdate: Date.now().toString(),
+        const existing = await dbAsync.get(`SELECT status FROM drivers WHERE user_id = ?`, [driverId]);
+        const status = existing && existing.status !== 'offline' ? existing.status : 'available';
+
+        await dbAsync.run(
+            `INSERT INTO drivers (user_id, latitude, longitude, status) VALUES (?, ?, ?, ?)
+             ON CONFLICT(user_id) DO UPDATE SET latitude = excluded.latitude, longitude = excluded.longitude, status = ?`,
+            [driverId, lat, lng, status, status]
+        );
+
+        await this._redisSafe(async () => {
+            await redis.geoadd('DriverLocations', lng, lat, String(driverId));
+            await redis.hset(`driver:${driverId}`, 'latitude', String(lat), 'longitude', String(lng),
+                'lastUpdate', String(Date.now()));
+            await redis.hsetnx(`driver:${driverId}`, 'status', status);
         });
 
-        // Add to Redis Geospatial index!
-        await redis.geoadd('DriverLocations', lng, lat, driverId.toString());
-
-        // Set driver as available if not currently busy
-        const status = await redis.hget(`driver:${driverId}`, 'status');
-        if (!status || status === 'offline') {
-            await redis.hset(`driver:${driverId}`, 'status', 'available');
+        const active = await dbAsync.get(
+            `SELECT rider_id FROM rides WHERE driver_id = ? AND status = 'accepted' ORDER BY id DESC LIMIT 1`,
+            [driverId]
+        );
+        if (active) {
+            this.io.to(userRoom(active.rider_id)).emit('driverLocationUpdate', { driverId, lat, lng });
         }
     }
 
-    /**
-     * SURGE PRICING — demand/supply ratio per region
-     */
+    /** Surge multiplier from demand/supply in a ~11 km grid cell. */
     async calculateSurge(lat, lng) {
-        const regionId = this._getRegionId(lat, lng);
-        const activeRiders = parseInt(await redis.get(`region:${regionId}:riders`) || '0');
-        const availableDrivers = parseInt(await redis.get(`region:${regionId}:drivers`) || '1');
-
-        const ratio = activeRiders / Math.max(availableDrivers, 1);
-        let multiplier = 1.0;
-        if (ratio > 2.0) multiplier = 1.5;
-        if (ratio > 3.0) multiplier = 2.0;
-        if (ratio > 5.0) multiplier = 2.5;
-
-        await redis.set(`surge:${regionId}`, multiplier.toString(), 'EX', 60);
-        return multiplier;
-    }
-
-    // ─── Private helpers ───
-
-    async _createRide(request, driverId, distance) {
-        const { riderId, pickup, dropoff, vehicleType, price } = request;
-        return new Promise((resolve, reject) => {
-            const sql = `INSERT INTO rides (rider_id, driver_id, pickup_lat, pickup_lng, dropoff_lat, dropoff_lng, pickup_address, dropoff_address, status, fare, vehicle_type)
-                         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'pending', $9, $10) RETURNING id`;
-            db.run(sql, [
-                riderId, driverId,
-                pickup.lat, pickup.lng,
-                dropoff?.lat || 0, dropoff?.lng || 0,
-                pickup.address || '', dropoff?.address || '',
-                price, vehicleType
-            ], function (err) {
-                if (err) return reject(err);
-                resolve({
-                    id: this.lastID,
-                    riderId, driverId, pickup, dropoff,
-                    vehicleType, price, status: 'pending',
-                    distance: distance || '0',
-                });
-            });
+        const regionId = this._regionId(lat, lng);
+        const multiplier = await this._redisSafe(async () => {
+            const riders = parseInt((await redis.get(`region:${regionId}:riders`)) || '0', 10);
+            const drivers = parseInt((await redis.get(`region:${regionId}:drivers`)) || '1', 10);
+            const ratio = riders / Math.max(drivers, 1);
+            let m = 1.0;
+            if (ratio > 2.0) m = 1.5;
+            if (ratio > 3.0) m = 2.0;
+            if (ratio > 5.0) m = 2.5;
+            await redis.set(`surge:${regionId}`, String(m), 'EX', 60);
+            return m;
         });
+        return multiplier ?? 1.0;
     }
 
-    async _matchFromDatabase(rideRequest) {
-        const { riderId, pickup, dropoff, vehicleType, price } = rideRequest;
-        return new Promise((resolve, reject) => {
-            db.all(
-                `SELECT * FROM drivers WHERE status = 'available' AND user_id != $1`,
-                [riderId],
-                async (err, drivers) => {
-                    if (err) return reject(err);
-                    if (!drivers || drivers.length === 0) {
-                        return reject(new Error('No drivers available'));
-                    }
+    // ─── Matching internals ──────────────────────────────────────────────────
 
-                    // Sort by distance
-                    drivers.sort((a, b) => {
-                        const distA = calculateDistance(pickup.lat, pickup.lng, a.latitude, a.longitude);
-                        const distB = calculateDistance(pickup.lat, pickup.lng, b.latitude, b.longitude);
-                        return distA - distB;
-                    });
+    /** Offer the ride to the nearest free driver who hasn't rejected it. Returns that driver id or null. */
+    async _offerToNearestDriver(ride) {
+        const rejected = new Set(await this._rejectedDrivers(ride.id));
+        const candidates = await this._nearbyDrivers(ride.pickup, ride.riderId);
 
-                    const nearest = drivers[0];
-                    const dist = calculateDistance(pickup.lat, pickup.lng, nearest.latitude, nearest.longitude);
+        for (const { driverId, distanceKm } of candidates) {
+            if (rejected.has(String(driverId))) continue;
+            if (!(await this._reserveDriver(driverId, ride.id))) continue; // someone else got them
 
-                    try {
-                        const ride = await this._createRide(rideRequest, nearest.user_id, dist.toFixed(1));
-                        await EventBus.publish('ride:requested', {
-                            rideId: ride.id, riderId, driverId: nearest.user_id
-                        });
-                        this.io.to(String(nearest.user_id)).emit('newRideRequest', ride);
-                        resolve(ride);
-                    } catch (e) {
-                        reject(e);
-                    }
-                }
-            );
+            await this._redisSafe(() => redis.hset(`ride:${ride.id}`, 'offeredTo', String(driverId)));
+            this.io.to(userRoom(driverId)).emit('newRideRequest', { ...ride, offeredTo: driverId, driverDistance: distanceKm });
+            console.log(`[MATCH] Ride ${ride.id} offered to driver ${driverId} (${distanceKm.toFixed(2)} km)`);
+            return driverId;
+        }
+
+        this.io.to(userRoom(ride.riderId)).emit('noDriversAvailable', {
+            rideId: ride.id, message: 'No drivers available nearby. Please try again.',
         });
+        return null;
     }
 
-    async _clearPendingRequests(driverId, acceptedRideId) {
-        // Get all pending ride requests for this driver
-        const pendingKeys = await redis.keys(`ride:pending:driver:${driverId}:*`);
-        for (const key of pendingKeys) {
-            const pendingRideId = key.split(':').pop();
-            if (pendingRideId !== acceptedRideId.toString()) {
-                // Re-match these rides with other drivers
-                const rideData = await redis.hgetall(`ride:${pendingRideId}`);
-                if (rideData && rideData.status === 'requested') {
-                    await redis.sadd(`ride:${pendingRideId}:rejected`, driverId.toString());
-                }
+    /** Available drivers sorted by distance from pickup. Redis GEO first, SQLite scan as fallback. */
+    async _nearbyDrivers(pickup, riderId) {
+        const fromRedis = await this._redisSafe(async () => {
+            const results = await redis.georadius('DriverLocations', pickup.lng, pickup.lat,
+                SEARCH_RADIUS_KM, 'km', 'WITHDIST', 'ASC');
+            const out = [];
+            for (const [id, dist] of results) {
+                if (String(id) === String(riderId)) continue;
+                const status = await redis.hget(`driver:${id}`, 'status');
+                if (status === 'available') out.push({ driverId: Number(id), distanceKm: parseFloat(dist) });
             }
-            await redis.del(key);
+            return out;
+        });
+        if (fromRedis && fromRedis.length > 0) return fromRedis;
+
+        const rows = await dbAsync.all(
+            `SELECT user_id, latitude, longitude FROM drivers
+             WHERE status = 'available' AND user_id != ? AND latitude IS NOT NULL`,
+            [riderId]
+        );
+        return rows
+            .map((d) => ({ driverId: d.user_id, distanceKm: calculateDistance(pickup.lat, pickup.lng, d.latitude, d.longitude) }))
+            .filter((d) => d.distanceKm <= SEARCH_RADIUS_KM)
+            .sort((a, b) => a.distanceKm - b.distanceKm);
+    }
+
+    /** Atomically move a driver from available → matched. Redis and SQLite must both agree. */
+    async _reserveDriver(driverId, rideId) {
+        const redisResult = await this._redisSafe(() =>
+            redis.eval(RESERVE_DRIVER_LUA, 1, `driver:${driverId}`, String(rideId)));
+        if (redisResult === 0) return false;
+
+        const { changes } = await dbAsync.run(
+            `UPDATE drivers SET status = 'matched' WHERE user_id = ? AND status = 'available'`,
+            [driverId]
+        );
+        if (changes === 0) {
+            // SQLite says they're taken; make Redis agree.
+            if (redisResult === 1) await this._redisSafe(() => redis.hset(`driver:${driverId}`, 'status', 'busy'));
+            return false;
+        }
+        if (redisResult === 2) {
+            await this._redisSafe(() => redis.hset(`driver:${driverId}`, 'status', 'matched', 'currentRide', String(rideId)));
+        }
+        return true;
+    }
+
+    async _setDriverStatus(driverId, status, rideId = null) {
+        await dbAsync.run(`UPDATE drivers SET status = ? WHERE user_id = ?`, [status, driverId]);
+        await this._redisSafe(() => (rideId
+            ? redis.hset(`driver:${driverId}`, 'status', status, 'currentRide', String(rideId))
+            : redis.hset(`driver:${driverId}`, 'status', status)));
+    }
+
+    // ─── Ride state helpers ─────────────────────────────────────────────────
+
+    async _cacheRide(ride) {
+        await this._redisSafe(async () => {
+            await redis.hset(`ride:${ride.id}`, {
+                rideId: String(ride.id),
+                riderId: String(ride.riderId),
+                status: ride.status,
+                pickupLat: String(ride.pickup.lat),
+                pickupLng: String(ride.pickup.lng),
+                fare: String(ride.price ?? ''),
+                vehicleType: ride.vehicleType || '',
+            });
+            await redis.expire(`ride:${ride.id}`, RIDE_TTL_SECONDS);
+        });
+    }
+
+    async _loadRide(rideId) {
+        const row = await dbAsync.get(`SELECT * FROM rides WHERE id = ?`, [rideId]);
+        if (!row) return null;
+        return {
+            id: row.id,
+            riderId: row.rider_id,
+            status: row.status,
+            pickup: { lat: row.pickup_lat, lng: row.pickup_lng, address: row.pickup_address },
+            dropoff: { lat: row.dropoff_lat, lng: row.dropoff_lng, address: row.dropoff_address },
+            vehicleType: row.vehicle_type,
+            price: row.fare,
+        };
+    }
+
+    // Rejections live in Redis when available, otherwise in memory (single-instance only).
+    async _markRejected(rideId, driverId) {
+        const ok = await this._redisSafe(async () => {
+            await redis.sadd(`ride:${rideId}:rejected`, String(driverId));
+            await redis.expire(`ride:${rideId}:rejected`, RIDE_TTL_SECONDS);
+            return true;
+        });
+        if (!ok) {
+            this._localRejected = this._localRejected || new Map();
+            const key = String(rideId);
+            if (!this._localRejected.has(key)) this._localRejected.set(key, new Set());
+            this._localRejected.get(key).add(String(driverId));
         }
     }
 
-    _getRegionId(lat, lng) {
-        // Simple geo-hash: round to 1 decimal place (~11km grid)
+    async _rejectedDrivers(rideId) {
+        const fromRedis = await this._redisSafe(() => redis.smembers(`ride:${rideId}:rejected`));
+        const local = this._localRejected?.get(String(rideId)) || new Set();
+        return [...(fromRedis || []), ...local];
+    }
+
+    // ─── Infrastructure helpers ─────────────────────────────────────────────
+
+    /** Run a Redis operation; return null instead of throwing if Redis is down. */
+    async _redisSafe(fn) {
+        if (!redis.isReady()) return null;
+        try {
+            return await fn();
+        } catch (err) {
+            console.warn('[MATCH] Redis operation failed, continuing without it:', err.message);
+            return null;
+        }
+    }
+
+    async _acquireLock(key, ttlSeconds) {
+        if (!redis.isReady()) {
+            // Single-instance fallback lock.
+            this._localLocks = this._localLocks || new Set();
+            if (this._localLocks.has(key)) return false;
+            this._localLocks.add(key);
+            return true;
+        }
+        return (await redis.set(key, '1', 'EX', ttlSeconds, 'NX')) === 'OK';
+    }
+
+    async _releaseLock(key) {
+        this._localLocks?.delete(key);
+        await this._redisSafe(() => redis.del(key));
+    }
+
+    _regionId(lat, lng) {
         return `${Math.round(lat * 10) / 10}_${Math.round(lng * 10) / 10}`;
     }
 }
 
+RideMatchingService.userRoom = userRoom;
 module.exports = RideMatchingService;
