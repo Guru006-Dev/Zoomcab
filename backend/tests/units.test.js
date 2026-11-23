@@ -50,6 +50,12 @@ describe('config', () => {
         expect(loadConfig({ NODE_ENV: 'production', DEMO_MODE: undefined, JWT_SECRET: 'x' }).demoMode).toBe(false);
     });
 
+    test('demo logins are seeded in development only, unless overridden', () => {
+        expect(loadConfig({ NODE_ENV: 'development', SEED_DEMO_USERS: undefined, JWT_SECRET: 'x' }).seedDemoUsers).toBe(true);
+        expect(loadConfig({ NODE_ENV: 'production', SEED_DEMO_USERS: undefined, JWT_SECRET: 'x' }).seedDemoUsers).toBe(false);
+        expect(loadConfig({ NODE_ENV: 'production', SEED_DEMO_USERS: 'true', JWT_SECRET: 'x' }).seedDemoUsers).toBe(true);
+    });
+
     test('DEMO_MODE overrides the default', () => {
         expect(loadConfig({ NODE_ENV: 'production', DEMO_MODE: 'true', JWT_SECRET: 'x' }).demoMode).toBe(true);
         expect(loadConfig({ NODE_ENV: 'development', DEMO_MODE: 'false', JWT_SECRET: 'x' }).demoMode).toBe(false);

@@ -3,7 +3,7 @@ import { useState } from 'react';
 const STORAGE_KEY = 'zoomcab-referrals';
 
 const useReferrals = () => {
-    const [referralData, setReferralData] = useState(() => {
+    const [referralData] = useState(() => {
         const saved = localStorage.getItem(STORAGE_KEY);
         return saved ? JSON.parse(saved) : {
             code: 'GURU2024',

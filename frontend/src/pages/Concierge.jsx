@@ -80,10 +80,10 @@ export default function Concierge() {
                             }}>
                                 <ReactMarkdown
                                     components={{
-                                        p: ({ node, ...props }) => <p style={{ margin: '0 0 10px 0', lineHeight: 1.5 }} {...props} />,
-                                        img: ({ node, ...props }) => <img style={{ maxWidth: '100%', borderRadius: 12, marginTop: 10, display: 'block' }} {...props} />,
-                                        ul: ({ node, ...props }) => <ul style={{ margin: '10px 0', paddingLeft: 20 }} {...props} />,
-                                        li: ({ node, ...props }) => <li style={{ marginBottom: 6 }} {...props} />
+                                        p: ({ node: _node, ...props }) => <p style={{ margin: '0 0 10px 0', lineHeight: 1.5 }} {...props} />,
+                                        img: ({ node: _node, ...props }) => <img style={{ maxWidth: '100%', borderRadius: 12, marginTop: 10, display: 'block' }} {...props} />,
+                                        ul: ({ node: _node, ...props }) => <ul style={{ margin: '10px 0', paddingLeft: 20 }} {...props} />,
+                                        li: ({ node: _node, ...props }) => <li style={{ marginBottom: 6 }} {...props} />
                                     }}
                                 >
                                     {msg.text}

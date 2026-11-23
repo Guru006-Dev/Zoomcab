@@ -20,5 +20,8 @@ module.exports = {
     // Demo mode auto-accepts rides with a simulated driver so a single person can test the rider flow.
     // Defaults to on in development, off in production; DEMO_MODE=true/false overrides either way.
     demoMode: process.env.DEMO_MODE ? process.env.DEMO_MODE === 'true' : !isProduction,
+    // Create the demo logins (Guru/123456, Driver1/password) on startup.
+    // On by default in development, off in production; SEED_DEMO_USERS=true/false overrides.
+    seedDemoUsers: process.env.SEED_DEMO_USERS ? process.env.SEED_DEMO_USERS === 'true' : !isProduction,
     instanceId: process.env.INSTANCE_ID || `instance-${process.pid}`,
 };

@@ -1,11 +1,9 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Music, Wind, MessageCircle, Dog, Save, CheckCircle } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import PageLayout from '../components/PageLayout';
 
 const RidePreferences = () => {
-    const navigate = useNavigate();
     const [savedPopup, setSavedPopup] = useState(false);
     const [preferences, setPreferences] = useState(() => {
         const saved = localStorage.getItem('zoomcab-ride-preferences');
