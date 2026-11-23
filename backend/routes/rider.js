@@ -1,5 +1,5 @@
 const express = require('express');
-const db = require('../database');
+const db = require('../db');
 const { authenticateToken } = require('../middleware/auth');
 
 module.exports = (matchingService) => {
@@ -22,13 +22,16 @@ module.exports = (matchingService) => {
     });
 
     // Check ride status (only the rider or the assigned driver may see it)
-    router.get('/ride-status/:id', authenticateToken, (req, res) => {
-        db.get(`SELECT * FROM rides WHERE id = ?`, [req.params.id], (err, row) => {
-            if (err) return res.status(500).json({ error: err.message });
+    router.get('/ride-status/:id', authenticateToken, async (req, res) => {
+        if (!/^\d+$/.test(req.params.id)) return res.status(404).json({ error: 'Ride not found' });
+        try {
+            const row = await db.one(`SELECT * FROM rides WHERE id = $1`, [req.params.id]);
             if (!row) return res.status(404).json({ error: 'Ride not found' });
             if (row.rider_id !== req.user.id && row.driver_id !== req.user.id) return res.sendStatus(403);
             res.json(row);
-        });
+        } catch (err) {
+            res.status(500).json({ error: err.message });
+        }
     });
 
     return router;

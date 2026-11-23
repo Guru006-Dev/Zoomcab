@@ -1,19 +1,16 @@
 /**
- * Shared setup for integration tests: a fresh SQLite file per test file, the real
- * server on a random port, and small helpers for users and sockets.
- * Works with or without Redis (CI runs both).
+ * Shared setup for integration tests: a clean Postgres database, the real server on a
+ * random port, and small helpers for users and sockets.
+ * Needs Postgres with PostGIS (DATABASE_URL); works with or without Redis (CI runs both).
+ * Locally: `docker compose up -d postgres` then `npm test`.
  */
-const os = require('os');
-const path = require('path');
-const fs = require('fs');
-
 process.env.NODE_ENV = 'test';
 process.env.JWT_SECRET = 'test-secret';
 process.env.DEMO_MODE = 'false';
-process.env.DB_PATH = path.join(os.tmpdir(), `zoomcab-test-${process.pid}-${Date.now()}.db`);
 
 const { io: ioClient } = require('socket.io-client');
 const redis = require('../redisClient');
+const db = require('../db');
 
 let baseUrl;
 let serverModule;
@@ -31,10 +28,11 @@ async function waitForRedis(ms = 2000) {
 async function startServer() {
     const redisUp = await waitForRedis();
     if (redisUp) await redis.flushdb(); // tests reuse small numeric ids; start clean
+    await db.migrate();
+    await db.query('TRUNCATE reviews, rides, drivers, users RESTART IDENTITY CASCADE');
     serverModule = require('../server');
     const port = await serverModule.start(0);
     baseUrl = `http://127.0.0.1:${port}`;
-    await sleep(300); // let SQLite finish creating tables
     return { baseUrl, redisUp };
 }
 
@@ -42,10 +40,6 @@ async function stopServer() {
     sockets.forEach((s) => s.close());
     if (serverModule) await serverModule.stop();
     redis.disconnect();
-    await sleep(100);
-    for (const suffix of ['', '-wal', '-shm']) {
-        try { fs.rmSync(process.env.DB_PATH + suffix, { force: true }); } catch (e) { /* still locked on Windows */ }
-    }
 }
 
 async function api(method, route, body, token) {

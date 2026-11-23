@@ -9,7 +9,7 @@ const authRoutes = require('./routes/auth');
 const riderRoutes = require('./routes/rider');
 const driverRoutes = require('./routes/driver');
 const chatbotRoutes = require('./chatbot/chatbotRoutes');
-const dbAsync = require('./utils/dbAsync');
+const db = require('./db');
 const redis = require('./redisClient');
 const LoyaltyService = require('./loyaltyService');
 const loyaltyRoutes = require('./routes/loyalty');
@@ -67,7 +67,8 @@ app.use((err, req, res, next) => {
 });
 
 /** Start listening. Port 0 picks a free port (used by tests). Resolves with the bound port. */
-function start(port = config.port) {
+async function start(port = config.port) {
+    await db.migrate();
     return new Promise((resolve) => {
         server.listen(port, () => {
             const bound = server.address().port;
@@ -82,6 +83,7 @@ async function stop() {
     try { await Promise.all([leader.stop(), registry.deregister()]); } catch (e) { /* Redis may be gone */ }
     io.close();
     await new Promise((resolve) => server.close(() => resolve()));
+    await db.close();
 }
 
 // Cluster membership needs Redis. Join once it's reachable; run fine without it.
@@ -108,7 +110,10 @@ redis.on('ready', async () => {
 });
 
 if (require.main === module) {
-    start();
+    start().catch((err) => {
+        console.error('[DB] Could not prepare the database:', err.message);
+        process.exit(1);
+    });
     const shutdown = async () => {
         await stop();
         process.exit(0);
@@ -155,7 +160,7 @@ io.on('connection', (socket) => {
     socket.on('payment_completed_broadcast', async (data = {}) => {
         const user = socket.data.user;
         if (!user || !data.rideId) return;
-        const ride = await dbAsync.get(`SELECT rider_id, driver_id FROM rides WHERE id = ?`, [data.rideId]).catch(() => null);
+        const ride = await db.one(`SELECT rider_id, driver_id FROM rides WHERE id = $1`, [Number(data.rideId) || 0]).catch(() => null);
         if (ride && ride.rider_id === user.id && ride.driver_id) {
             io.to(userRoom(ride.driver_id)).emit('paymentCompleted', { rideId: data.rideId });
         }
@@ -171,7 +176,7 @@ io.on('connection', (socket) => {
 
         setTimeout(async () => {
             if (rideId) {
-                const ride = await dbAsync.get(`SELECT status FROM rides WHERE id = ?`, [rideId]).catch(() => null);
+                const ride = await db.one(`SELECT status FROM rides WHERE id = $1`, [rideId]).catch(() => null);
                 if (!ride || ride.status !== 'pending') return; // a real driver got it
             }
             const driverId = 'demo-driver';
