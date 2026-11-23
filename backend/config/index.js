@@ -16,6 +16,8 @@ module.exports = {
     port: parseInt(process.env.PORT || '5000', 10),
     jwtSecret,
     jwtExpiresIn: process.env.JWT_EXPIRES_IN || '1h',
+    // PostgreSQL with PostGIS. The default matches `docker compose up postgres`.
+    databaseUrl: process.env.DATABASE_URL || 'postgres://zoomcab:zoomcab@localhost:5432/zoomcab',
     corsOrigin: process.env.CORS_ORIGIN || '*',
     // Demo mode auto-accepts rides with a simulated driver so a single person can test the rider flow.
     // Defaults to on in development, off in production; DEMO_MODE=true/false overrides either way.

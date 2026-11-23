@@ -3,15 +3,15 @@
  *
  * The single place where rides are requested, offered, accepted, rejected and completed.
  *
- * - Nearest-driver search with Redis GEO (falls back to a Haversine scan over SQLite when Redis is down)
+ * - Nearest-driver search with Redis GEO (falls back to a PostGIS KNN query when Redis is down)
  * - Per-rider distributed lock so a double-tap can't create two rides
- * - Atomic driver reservation (Redis Lua when available, conditional SQL UPDATE otherwise)
- * - Atomic acceptance: a conditional SQL UPDATE guarantees only one driver can win a ride,
- *   even across several backend instances sharing the database
+ * - Atomic driver reservation (Redis Lua when available, plus a conditional UPDATE in Postgres)
+ * - Atomic acceptance: a conditional UPDATE in Postgres guarantees only one driver can win a
+ *   ride, even across several backend instances
  * - Notifications go only to the people involved (Socket.IO rooms), never to everyone
  */
 const redis = require('./redisClient');
-const dbAsync = require('./utils/dbAsync');
+const db = require('./db');
 const { calculateDistance } = require('./utils/geo');
 const EventBus = require('./eventBus');
 
@@ -21,11 +21,17 @@ const RIDE_TTL_SECONDS = 3600;
 /** Room every user joins on connect (see server.js `join`). */
 const userRoom = (userId) => `user:${userId}`;
 
+/** Ride ids come from URLs; anything that isn't a positive integer can't be a ride. */
+const toRideId = (value) => {
+    const n = Number(value);
+    return Number.isInteger(n) && n > 0 ? n : null;
+};
+
 // Atomically reserve a driver: only succeeds if the driver is still available.
 const RESERVE_DRIVER_LUA = `
 local status = redis.call('HGET', KEYS[1], 'status')
 if status == false then
-    return 2 -- Redis doesn't know this driver yet; SQLite decides
+    return 2 -- Redis doesn't know this driver yet; Postgres decides
 end
 if status ~= 'available' then
     return 0
@@ -55,10 +61,11 @@ class RideMatchingService {
         }
 
         try {
-            const { lastID: rideId } = await dbAsync.run(
+            const { id: rideId } = await db.one(
                 `INSERT INTO rides (rider_id, pickup_lat, pickup_lng, dropoff_lat, dropoff_lng,
                                     pickup_address, dropoff_address, status, fare, vehicle_type)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?)`,
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, 'pending', $8, $9)
+                 RETURNING id`,
                 [riderId, pickup.lat, pickup.lng, dropoff?.lat ?? null, dropoff?.lng ?? null,
                     pickup.address || '', dropoff?.address || '', price, vehicleType]
             );
@@ -92,17 +99,18 @@ class RideMatchingService {
 
     /**
      * Driver accepts a ride. Exactly one driver can win: the UPDATE only matches
-     * while the ride is still pending, and SQLite applies it atomically.
+     * while the ride is still pending, and Postgres applies it atomically.
      */
     async acceptRide(driverId, rideId) {
-        const ride = await dbAsync.get(`SELECT id, rider_id, status FROM rides WHERE id = ?`, [rideId]);
+        rideId = toRideId(rideId);
+        const ride = rideId && await db.one(`SELECT id, rider_id, status FROM rides WHERE id = $1`, [rideId]);
         if (!ride) return { ok: false, status: 404, reason: 'Ride not found' };
 
-        const { changes } = await dbAsync.run(
-            `UPDATE rides SET driver_id = ?, status = 'accepted' WHERE id = ? AND status = 'pending'`,
+        const { rowCount } = await db.query(
+            `UPDATE rides SET driver_id = $1, status = 'accepted' WHERE id = $2 AND status = 'pending'`,
             [driverId, rideId]
         );
-        if (changes === 0) return { ok: false, status: 409, reason: 'Ride already accepted' };
+        if (rowCount === 0) return { ok: false, status: 409, reason: 'Ride already accepted' };
 
         await this._setDriverStatus(driverId, 'busy', rideId);
         await this._redisSafe(() => redis.hset(`ride:${rideId}`, 'status', 'accepted', 'driverId', String(driverId)));
@@ -124,7 +132,9 @@ class RideMatchingService {
 
     /** Driver declines an offer: free them up and offer the ride to the next nearest driver. */
     async rejectRide(driverId, rideId) {
-        const ride = await this._loadRide(rideId);
+        rideId = toRideId(rideId);
+        const ride = rideId && await this._loadRide(rideId);
+        if (!ride) return { ok: false, status: 404, reason: 'Ride not found' };
         if (!ride || ride.status !== 'pending') return { ok: false, status: 409, reason: 'Ride is no longer pending' };
 
         await this._markRejected(rideId, driverId);
@@ -140,10 +150,16 @@ class RideMatchingService {
     }
 
     async completeRide(driverId, rideId) {
-        const ride = await dbAsync.get(`SELECT rider_id, fare FROM rides WHERE id = ? AND driver_id = ?`, [rideId, driverId]);
+        rideId = toRideId(rideId);
+        // Only the assigned driver, and only once: the WHERE clause makes this atomic.
+        const ride = rideId && await db.one(
+            `UPDATE rides SET status = 'completed'
+             WHERE id = $1 AND driver_id = $2 AND status = 'accepted'
+             RETURNING rider_id, fare`,
+            [rideId, driverId]
+        );
         if (!ride) return { ok: false, status: 403, reason: 'Not authorized or ride not found' };
 
-        await dbAsync.run(`UPDATE rides SET status = 'completed' WHERE id = ?`, [rideId]);
         await this._setDriverStatus(driverId, 'available');
         await this._redisSafe(() => redis.hset(`ride:${rideId}`, 'status', 'completed'));
 
@@ -155,17 +171,20 @@ class RideMatchingService {
     }
 
     /**
-     * Store a driver's position (Redis GEO + SQLite) and forward it to the rider
+     * Store a driver's position (Redis GEO + PostGIS) and forward it to the rider
      * of the driver's active ride, if any. Never broadcast to everyone.
      */
     async updateDriverLocation(driverId, lat, lng) {
-        const existing = await dbAsync.get(`SELECT status FROM drivers WHERE user_id = ?`, [driverId]);
-        const status = existing && existing.status !== 'offline' ? existing.status : 'available';
-
-        await dbAsync.run(
-            `INSERT INTO drivers (user_id, latitude, longitude, status) VALUES (?, ?, ?, ?)
-             ON CONFLICT(user_id) DO UPDATE SET latitude = excluded.latitude, longitude = excluded.longitude, status = ?`,
-            [driverId, lat, lng, status, status]
+        // New or offline drivers become available; matched/busy drivers keep their status.
+        const { status } = await db.one(
+            `INSERT INTO drivers (user_id, location, status, updated_at)
+             VALUES ($1, ${db.POINT('$2', '$3')}, 'available', now())
+             ON CONFLICT (user_id) DO UPDATE SET
+                 location = EXCLUDED.location,
+                 updated_at = now(),
+                 status = CASE WHEN drivers.status = 'offline' THEN 'available' ELSE drivers.status END
+             RETURNING status`,
+            [driverId, lng, lat]
         );
 
         await this._redisSafe(async () => {
@@ -175,8 +194,8 @@ class RideMatchingService {
             await redis.hsetnx(`driver:${driverId}`, 'status', status);
         });
 
-        const active = await dbAsync.get(
-            `SELECT rider_id FROM rides WHERE driver_id = ? AND status = 'accepted' ORDER BY id DESC LIMIT 1`,
+        const active = await db.one(
+            `SELECT rider_id FROM rides WHERE driver_id = $1 AND status = 'accepted' ORDER BY id DESC LIMIT 1`,
             [driverId]
         );
         if (active) {
@@ -224,7 +243,7 @@ class RideMatchingService {
         return null;
     }
 
-    /** Available drivers sorted by distance from pickup. Redis GEO first, SQLite scan as fallback. */
+    /** Available drivers sorted by distance from pickup. Redis GEO first, PostGIS query as fallback. */
     async _nearbyDrivers(pickup, riderId) {
         const fromRedis = await this._redisSafe(async () => {
             const results = await redis.georadius('DriverLocations', pickup.lng, pickup.lat,
@@ -239,29 +258,31 @@ class RideMatchingService {
         });
         if (fromRedis && fromRedis.length > 0) return fromRedis;
 
-        const rows = await dbAsync.all(
-            `SELECT user_id, latitude, longitude FROM drivers
-             WHERE status = 'available' AND user_id != ? AND latitude IS NOT NULL`,
-            [riderId]
+        // PostGIS: drivers within the radius, nearest first, using the GIST index (KNN <->).
+        const rows = await db.many(
+            `SELECT user_id, ST_Distance(location, ${db.POINT('$2', '$3')}) / 1000 AS distance_km
+             FROM drivers
+             WHERE status = 'available' AND user_id <> $1 AND location IS NOT NULL
+               AND ST_DWithin(location, ${db.POINT('$2', '$3')}, $4)
+             ORDER BY location <-> ${db.POINT('$2', '$3')}
+             LIMIT 20`,
+            [riderId, pickup.lng, pickup.lat, SEARCH_RADIUS_KM * 1000]
         );
-        return rows
-            .map((d) => ({ driverId: d.user_id, distanceKm: calculateDistance(pickup.lat, pickup.lng, d.latitude, d.longitude) }))
-            .filter((d) => d.distanceKm <= SEARCH_RADIUS_KM)
-            .sort((a, b) => a.distanceKm - b.distanceKm);
+        return rows.map((d) => ({ driverId: d.user_id, distanceKm: d.distance_km }));
     }
 
-    /** Atomically move a driver from available → matched. Redis and SQLite must both agree. */
+    /** Atomically move a driver from available → matched. Redis and Postgres must both agree. */
     async _reserveDriver(driverId, rideId) {
         const redisResult = await this._redisSafe(() =>
             redis.eval(RESERVE_DRIVER_LUA, 1, `driver:${driverId}`, String(rideId)));
         if (redisResult === 0) return false;
 
-        const { changes } = await dbAsync.run(
-            `UPDATE drivers SET status = 'matched' WHERE user_id = ? AND status = 'available'`,
+        const { rowCount } = await db.query(
+            `UPDATE drivers SET status = 'matched' WHERE user_id = $1 AND status = 'available'`,
             [driverId]
         );
-        if (changes === 0) {
-            // SQLite says they're taken; make Redis agree.
+        if (rowCount === 0) {
+            // Postgres says they're taken; make Redis agree.
             if (redisResult === 1) await this._redisSafe(() => redis.hset(`driver:${driverId}`, 'status', 'busy'));
             return false;
         }
@@ -272,7 +293,7 @@ class RideMatchingService {
     }
 
     async _setDriverStatus(driverId, status, rideId = null) {
-        await dbAsync.run(`UPDATE drivers SET status = ? WHERE user_id = ?`, [status, driverId]);
+        await db.query(`UPDATE drivers SET status = $1 WHERE user_id = $2`, [status, driverId]);
         await this._redisSafe(() => (rideId
             ? redis.hset(`driver:${driverId}`, 'status', status, 'currentRide', String(rideId))
             : redis.hset(`driver:${driverId}`, 'status', status)));
@@ -296,7 +317,7 @@ class RideMatchingService {
     }
 
     async _loadRide(rideId) {
-        const row = await dbAsync.get(`SELECT * FROM rides WHERE id = ?`, [rideId]);
+        const row = await db.one(`SELECT * FROM rides WHERE id = $1`, [rideId]);
         if (!row) return null;
         return {
             id: row.id,

@@ -7,7 +7,7 @@ Redis GEO, atomic driver assignment, leader election across backend instances, a
 updates with Socket.IO that reach only the rider and driver of each ride. It runs as one server
 for development, or as three load-balanced instances with Docker Compose.
 
-**Stack:** React 19 + Vite + Tailwind · Node.js + Express 5 · Socket.IO · Redis · SQLite ·
+**Stack:** React 19 + Vite + Tailwind · Node.js + Express 5 · Socket.IO · Redis · PostgreSQL + PostGIS ·
 Leaflet + OSRM routing · Google Gemini (concierge chatbot)
 
 ---
@@ -28,9 +28,11 @@ development) has a simulated driver accept after a few seconds and drive along a
 
 | Problem | How Zoomcab handles it | Where |
 |---|---|---|
-| Find the nearest free driver | Drivers' positions are kept in a Redis GEO index; `GEORADIUS` returns candidates sorted by distance. Without Redis it falls back to a Haversine scan over SQLite. | `backend/rideMatchingService.js` |
-| Never offer one driver two rides | A Lua script reserves the driver in Redis only if they are still `available`, and a conditional `UPDATE ... WHERE status = 'available'` does the same in SQLite. | `_reserveDriver` |
-| Two drivers accept the same ride | `UPDATE rides ... WHERE id = ? AND status = 'pending'` is atomic, so exactly one driver gets `200` and the other gets `409`. | `acceptRide` |
+| Find the nearest free driver | Drivers' positions are kept in a Redis GEO index; `GEORADIUS` returns candidates sorted by distance. Without Redis, a PostGIS query does it: `ST_DWithin` for the radius and KNN ordering (`<->`) on a GIST index. | `backend/rideMatchingService.js` |
+| Never offer one driver two rides | A Lua script reserves the driver in Redis only if they are still `available`, and a conditional `UPDATE ... WHERE status = 'available'` does the same in Postgres. | `_reserveDriver` |
+| Two drivers accept the same ride | `UPDATE rides ... WHERE id = $1 AND status = 'pending'` is atomic in Postgres, so exactly one driver gets `200` and the other gets `409`. | `acceptRide` |
+| Overspending loyalty points | `UPDATE users ... WHERE loyalty_points >= $1` redeems in one statement, so concurrent redemptions can't go negative. | `backend/loyaltyService.js` |
+| Several instances creating the schema at once | Startup migration runs under a Postgres advisory lock. | `backend/db.js` |
 | Double-tapping "Book" | A per-rider lock (`SET ... NX EX 30` in Redis, in-memory without it). | `requestRide` |
 | Events must reach only the right people | Each authenticated socket joins a private `user:<id>` room. With several instances, the Socket.IO Redis adapter forwards room events between them. | `backend/server.js` |
 | Spoofed driver locations | The driver's identity comes from the JWT on the socket, never from the message payload. | `updateLocation` handler |
@@ -38,14 +40,19 @@ development) has a simulated driver accept after a few seconds and drive along a
 | Knowing which instances are alive | Service registry entries in Redis with TTL heartbeats. | `backend/serviceRegistry.js` |
 | Reacting to ride events | Redis pub/sub event bus; the loyalty service awards points on `ride:completed`. | `backend/eventBus.js`, `backend/loyaltyService.js` |
 
-Redis is optional: if it is down, matching, locking and acceptance keep working on SQLite alone
+Redis is optional: if it is down, matching, locking and acceptance keep working on Postgres alone
 (single instance), and `GET /api/health` reports `"redis": "unavailable"`.
 
 ## Running it
 
 ### One server (development)
 
-Needs Node.js 22. Redis is optional.
+Needs Node.js 22 and Postgres with PostGIS. Redis is optional. The quickest way to get both
+databases is Docker:
+
+```bash
+docker compose up -d postgres redis
+```
 
 ```bash
 cd backend
@@ -65,7 +72,7 @@ Demo logins (created only outside production): **Guru / 123456** (rider) and
 
 ### Cluster (Docker Compose)
 
-Redis, three backend instances and nginx in front of them:
+Postgres, Redis, three backend instances and nginx in front of them:
 
 ```bash
 JWT_SECRET=$(openssl rand -hex 32) docker compose up --build   # http://localhost:8080
@@ -82,7 +89,7 @@ All settings are environment variables; [backend/.env.example](backend/.env.exam
 |---|---|---|
 | `JWT_SECRET` | dev placeholder | **Required in production**; the server refuses to start without it |
 | `REDIS_HOST` / `REDIS_PORT` | `127.0.0.1` / `6379` | Redis connection |
-| `DB_PATH` | `backend/zoomcab.db` | SQLite file (shared by instances in Docker) |
+| `DATABASE_URL` | `postgres://zoomcab:zoomcab@localhost:5432/zoomcab` | Postgres with PostGIS |
 | `INSTANCE_ID` | `instance-<pid>` | Unique id per instance, used in leader election |
 | `DEMO_MODE` | on outside production | Simulated driver for solo testing |
 | `SEED_DEMO_USERS` | on outside production | Create the demo logins on startup |
@@ -92,17 +99,18 @@ All settings are environment variables; [backend/.env.example](backend/.env.exam
 ## Tests
 
 ```bash
+docker compose up -d postgres        # add redis to also run the Redis-only tests
 cd backend && npm test
 ```
 
-The suite starts the real server on a random port with a throwaway database and drives it with
+The suite resets the database, starts the real server on a random port, and drives it with
 HTTP calls and Socket.IO clients: nearest-driver offers, decline and re-offer, the
 simultaneous-accept race, that bystanders receive no events, that a driver can't fake another
-driver's location, access control, and config. Leader election and failover tests run when Redis
-is available.
+driver's location, access control, loyalty points (including concurrent redemption), reviews,
+and config. Leader election, failover and loyalty-event tests run when Redis is available.
 
-CI runs on every push and pull request: backend tests without Redis, backend tests against a real
-Redis service, and the frontend lint and build.
+CI runs on every push and pull request: backend tests against Postgres, backend tests against
+Postgres and Redis, and the frontend lint and build.
 
 ## API
 
@@ -116,6 +124,10 @@ Redis service, and the frontend lint and build.
 | `POST` | `/api/driver/accept-ride/:id` | driver | Accept (`409` if someone else won) |
 | `POST` | `/api/driver/reject-ride/:id` | driver | Decline; re-offers to the next driver |
 | `POST` | `/api/driver/complete-ride/:id` | assigned driver | Finish the ride |
+| `GET` | `/api/loyalty/points` | logged in | Your loyalty points |
+| `POST` | `/api/loyalty/redeem` | logged in | Spend points (fails if the balance is too low) |
+| `POST` | `/api/rating/submit` | rider | Review the driver of your completed ride, once |
+| `GET` | `/api/rating/driver/:id` | anyone | Average rating and recent reviews |
 | `GET` | `/api/health` | anyone | Instance id, Redis status, current leader |
 
 **Socket.IO events** (authenticate with `auth: { token }`): drivers send `updateLocation`;
@@ -127,6 +139,7 @@ riders receive `rideAccepted`, `rideUpdate`, `driverLocationUpdate`, `rideComple
 ```
 backend/
   server.js               Express + Socket.IO setup, rooms, demo mode, cluster startup
+  db.js                   Postgres pool, schema migration, PostGIS helpers
   rideMatchingService.js  Request / offer / accept / decline / complete, locking, Redis GEO
   leaderElection.js       Leader election with Redis heartbeats
   serviceRegistry.js      Instance registry with TTL heartbeats
@@ -138,13 +151,13 @@ frontend/src/
   api.js                  REST client and Socket.IO connection
   pages/                  Home (rider map), DriverDashboard, RideAcceptance, Payment, …
 deploy/                   nginx config and cluster guide
-docker-compose.yml        Redis + 3 API instances + nginx
+docker-compose.yml        Postgres + Redis + 3 API instances + nginx
 ```
 
 ## Known limitations
 
-- **SQLite is shared by all instances.** It works on one host (WAL mode, busy timeout), but it
-  is the weak point of the cluster; Postgres with PostGIS is the planned replacement.
+- **One Postgres instance.** All backend instances share it; there is no replica or failover
+  for the database itself.
 - **The Docker cluster has not yet been run end to end.** The Redis logic is tested in CI; the
   three-instance setup and nginx are not.
 - **Surge pricing** (`calculateSurge`) is implemented but not yet used when pricing rides.

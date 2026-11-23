@@ -6,7 +6,7 @@ const redis = new Redis({
     retryStrategy: (times) => Math.min(times * 200, 5000),
     maxRetriesPerRequest: 1,
     // Fail commands immediately while disconnected instead of queueing them,
-    // so callers can fall back to SQLite without waiting on retries.
+    // so callers can fall back to Postgres without waiting on retries.
     enableOfflineQueue: false,
 });
 
@@ -15,7 +15,7 @@ redis.on('ready', () => console.log('[REDIS] Connected'));
 redis.on('error', (err) => {
     // Log at most every 30s so a missing Redis doesn't flood the console.
     if (Date.now() - lastErrorLogged > 30000) {
-        console.error('[REDIS] Unavailable:', err.message, '— falling back to SQLite-only mode');
+        console.error('[REDIS] Unavailable:', err.message, '— falling back to Postgres-only mode');
         lastErrorLogged = Date.now();
     }
 });
