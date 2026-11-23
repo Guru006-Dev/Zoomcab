@@ -1,8 +1,10 @@
 import axios from 'axios';
 import io from 'socket.io-client';
 
-const API_URL = 'http://localhost:5000/api';
-const SOCKET_URL = 'http://localhost:5000';
+// VITE_BACKEND_URL="" (empty) means "same origin", used when nginx serves the app and proxies /api.
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? 'http://localhost:5000';
+const API_URL = `${BACKEND_URL}/api`;
+const SOCKET_URL = BACKEND_URL || undefined;
 
 const api = axios.create({
     baseURL: API_URL,
@@ -21,6 +23,9 @@ api.interceptors.request.use((config) => {
 });
 
 export const socket = io(SOCKET_URL, {
+    // WebSocket only: one long-lived connection per client, so the load balancer
+    // needs no sticky sessions (HTTP long-polling would need them).
+    transports: ['websocket'],
     // Sent on every (re)connect, so a socket opened before login picks up the token later.
     auth: (cb) => cb({ token: localStorage.getItem('token') }),
 });

@@ -18,6 +18,7 @@ module.exports = {
     jwtExpiresIn: process.env.JWT_EXPIRES_IN || '1h',
     corsOrigin: process.env.CORS_ORIGIN || '*',
     // Demo mode auto-accepts rides with a simulated driver so a single person can test the rider flow.
-    demoMode: process.env.DEMO_MODE !== 'false' && !isProduction,
+    // Defaults to on in development, off in production; DEMO_MODE=true/false overrides either way.
+    demoMode: process.env.DEMO_MODE ? process.env.DEMO_MODE === 'true' : !isProduction,
     instanceId: process.env.INSTANCE_ID || `instance-${process.pid}`,
 };
