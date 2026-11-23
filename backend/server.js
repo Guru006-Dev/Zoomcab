@@ -66,9 +66,23 @@ app.use((err, req, res, next) => {
     res.status(500).send('Something broke!');
 });
 
-server.listen(config.port, () => {
-    console.log(`Server ${config.instanceId} is running on port ${config.port}`);
-});
+/** Start listening. Port 0 picks a free port (used by tests). Resolves with the bound port. */
+function start(port = config.port) {
+    return new Promise((resolve) => {
+        server.listen(port, () => {
+            const bound = server.address().port;
+            console.log(`Server ${config.instanceId} is running on port ${bound}`);
+            resolve(bound);
+        });
+    });
+}
+
+/** Stop everything this process opened, so tests can exit cleanly. */
+async function stop() {
+    try { await Promise.all([leader.stop(), registry.deregister()]); } catch (e) { /* Redis may be gone */ }
+    io.close();
+    await new Promise((resolve) => server.close(() => resolve()));
+}
 
 // Cluster membership needs Redis. Join once it's reachable; run fine without it.
 let clusterStarted = false;
@@ -93,12 +107,15 @@ redis.on('ready', async () => {
     }
 });
 
-const shutdown = async () => {
-    try { await Promise.all([leader.stop(), registry.deregister()]); } catch (e) { /* Redis may be gone */ }
-    process.exit(0);
-};
-process.on('SIGINT', shutdown);
-process.on('SIGTERM', shutdown);
+if (require.main === module) {
+    start();
+    const shutdown = async () => {
+        await stop();
+        process.exit(0);
+    };
+    process.on('SIGINT', shutdown);
+    process.on('SIGTERM', shutdown);
+}
 
 // Socket.IO Handling
 // Every authenticated socket joins exactly one room: `user:<id>`. All ride events are
@@ -196,7 +213,7 @@ io.on('connection', (socket) => {
     });
 });
 
-module.exports = app; // For testing
+module.exports = { app, server, io, start, stop, matchingService };
 
 /** Demo only: move a fake driver along a real road route toward the pickup. */
 async function simulateDriverDrive(target, driverId) {
