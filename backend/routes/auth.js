@@ -4,7 +4,7 @@ const db = require('../database');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-const SECRET_KEY = 'secret-key-12345'; // In production, move to .env
+const { jwtSecret, jwtExpiresIn } = require('../config');
 
 router.post('/register', (req, res) => {
     const { username, password, role } = req.body;
@@ -31,7 +31,7 @@ router.post('/login', (req, res) => {
         if (!row || !bcrypt.compareSync(password, row.password)) {
             return res.status(401).json({ error: 'Invalid credentials' });
         }
-        const token = jwt.sign({ id: row.id, role: row.role }, SECRET_KEY, { expiresIn: '1h' });
+        const token = jwt.sign({ id: row.id, role: row.role }, jwtSecret, { expiresIn: jwtExpiresIn });
         res.json({ token, user: { id: row.id, username: row.username, role: row.role } });
     });
 });

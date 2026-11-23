@@ -1,97 +1,45 @@
 const express = require('express');
-const router = express.Router();
 const db = require('../database');
-const jwt = require('jsonwebtoken');
+const { authenticateToken } = require('../middleware/auth');
 
-module.exports = (io) => {
-    // Middleware to protect routes
-    const authenticateToken = (req, res, next) => {
-        const authHeader = req.headers['authorization'];
-        const token = authHeader && authHeader.split(' ')[1];
-        if (!token) return res.sendStatus(401);
+module.exports = (matchingService) => {
+    const router = express.Router();
 
-        jwt.verify(token, 'secret-key-12345', (err, user) => {
-            if (err) return res.sendStatus(403);
-            req.user = user;
-            next();
-        });
-    };
+    const requireDriver = (req, res, next) =>
+        (req.user.role === 'driver' ? next() : res.status(403).json({ error: 'Drivers only' }));
 
-    // Get available drivers (public or protected)
+    const send = (res) => (result) =>
+        (result.ok ? res.json(result) : res.status(result.status || 400).json({ error: result.reason }));
+
+    const fail = (res) => (err) => res.status(500).json({ error: err.message });
+
     router.get('/available', (req, res) => {
-        const sql = `SELECT * FROM drivers WHERE status = 'available'`;
-        db.all(sql, [], (err, rows) => {
+        db.all(`SELECT user_id, latitude, longitude, vehicle_type FROM drivers WHERE status = 'available'`, [], (err, rows) => {
             if (err) return res.status(500).json({ error: err.message });
             res.json(rows);
         });
     });
 
-    // Accept a ride
-    router.post('/accept-ride/:id', authenticateToken, (req, res) => {
-        const rideId = req.params.id;
-        const driverId = req.user.id; // User ID from token, which is also driver ID if matched
-
-        // Check if ride is still pending
-        // Check if ride is still pending
-        db.get(`SELECT status, rider_id FROM rides WHERE id = ?`, [rideId], (err, row) => {
-            if (err) return res.status(500).json({ error: err.message });
-            if (!row) return res.status(404).json({ error: 'Ride not found' });
-            if (row.status !== 'pending') return res.status(400).json({ error: 'Ride already accepted' });
-
-            const riderId = row.rider_id;
-
-            // Update ride status
-            const updateSql = `UPDATE rides SET driver_id = ?, status = 'accepted' WHERE id = ?`;
-
-            db.run(updateSql, [driverId, rideId], function (err) {
-                if (err) return res.status(500).json({ error: err.message });
-
-                // Set driver status to busy
-                db.run(`UPDATE drivers SET status = 'busy' WHERE user_id = ?`, [driverId]);
-
-                // Notify rider
-                const riderRoom = String(riderId);
-                console.log(`[RIDE_ACCEPTED] Notifying rider in room: "${riderRoom}"`);
-                io.to(riderRoom).emit('rideAccepted', { rideId, driverId, status: 'accepted' });
-
-                // Debug broadcast
-                io.emit('debug_msg', `Ride ${rideId} accepted by driver ${driverId}. Notifying rider ${riderId}.`);
-
-                res.json({ message: 'Ride accepted', rideId, status: 'accepted' });
-            });
-        });
+    router.post('/accept-ride/:id', authenticateToken, requireDriver, (req, res) => {
+        matchingService.acceptRide(req.user.id, req.params.id).then(send(res), fail(res));
     });
 
-    // Complete a ride
-    router.post('/complete-ride/:id', authenticateToken, (req, res) => {
-        const rideId = req.params.id;
-        const driverId = req.user.id;
-
-        const updateSql = `UPDATE rides SET status = 'completed' WHERE id = ? AND driver_id = ?`;
-        db.run(updateSql, [rideId, driverId], function (err) {
-            if (err) return res.status(500).json({ error: err.message });
-            if (this.changes === 0) return res.status(403).json({ error: 'Not authorized or ride not found' });
-
-            // Set driver status to available
-            db.run(`UPDATE drivers SET status = 'available' WHERE user_id = ?`, [driverId]);
-
-            // Notify rider
-            io.emit('rideCompleted', { rideId, status: 'completed' });
-
-            res.json({ message: 'Ride completed', rideId, status: 'completed' });
-        });
+    router.post('/reject-ride/:id', authenticateToken, requireDriver, (req, res) => {
+        matchingService.rejectRide(req.user.id, req.params.id).then(send(res), fail(res));
     });
 
-    // Update driver location (API alternative to socket)
-    router.post('/location', authenticateToken, (req, res) => {
-        const { lat, lng } = req.body;
-        const driverId = req.user.id;
+    router.post('/complete-ride/:id', authenticateToken, requireDriver, (req, res) => {
+        matchingService.completeRide(req.user.id, req.params.id).then(send(res), fail(res));
+    });
 
-        db.run(`INSERT OR REPLACE INTO drivers (user_id, latitude, longitude, status) VALUES (?, ?, ?, 'available')`,
-            [driverId, lat, lng], (err) => {
-                if (err) return res.status(500).json({ error: err.message });
-                res.json({ success: true });
-            });
+    // Update driver location (REST alternative to the socket event)
+    router.post('/location', authenticateToken, requireDriver, (req, res) => {
+        const { lat, lng } = req.body || {};
+        if (typeof lat !== 'number' || typeof lng !== 'number') {
+            return res.status(400).json({ error: 'lat and lng must be numbers' });
+        }
+        matchingService.updateDriverLocation(req.user.id, lat, lng)
+            .then(() => res.json({ success: true }), fail(res));
     });
 
     return router;

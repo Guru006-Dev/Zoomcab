@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { MapPin, Navigation, Clock, DollarSign, User, X, Check, Phone } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import GlassBackground from '../components/GlassBackground';
-import { acceptRide } from '../api';
+import { acceptRide, rejectRide } from '../api';
 
 const RideAcceptance = () => {
     const navigate = useNavigate();
@@ -43,6 +43,8 @@ const RideAcceptance = () => {
 
     const handleDecline = () => {
         setDeclined(true);
+        // Hand the ride to the next nearest driver (ignore failures for demo rides).
+        if (rideRequest?.id && rideRequest.id !== 'demo_123') rejectRide(rideRequest.id).catch(() => {});
         setTimeout(() => navigate('/driver'), 1500);
     };
 
@@ -62,20 +64,18 @@ const RideAcceptance = () => {
         try {
             if (rideRequest.id && rideRequest.id !== 'demo_123') {
                 try {
+                    // The server notifies the rider; only one driver can win this call.
                     await acceptRide(rideRequest.id);
                 } catch (e) {
+                    if (e.response?.status === 409) {
+                        // Another driver accepted first.
+                        setDeclined(true);
+                        setTimeout(() => navigate('/driver'), 1500);
+                        return;
+                    }
                     console.warn("DB accept failed (maybe mock ride), proceeding locally", e);
                 }
             }
-
-            // Broadcast acceptance to the rider!
-            import('../api').then(({ socket }) => {
-                socket.emit('rideAccepted', {
-                    rideId: rideRequest.id,
-                    driverId: JSON.parse(localStorage.getItem('user') || '{}')?.id || 'driver-demo-123',
-                    status: 'accepted'
-                });
-            });
 
             setAccepted(true);
             setTimeout(() => {
