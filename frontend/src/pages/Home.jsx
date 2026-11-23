@@ -51,6 +51,9 @@ const MapUpdater = ({ center, showRoute, routePath }) => {
     return null;
 };
 
+// Rider pickup point for the demo (Amrita University, Coimbatore). Module-level so it's a stable reference.
+const PICKUP_POSITION = [10.9027, 76.9006];
+
 export default function Home() {
     const navigate = useNavigate();
     const routerLoc = useLocation();
@@ -71,7 +74,7 @@ export default function Home() {
     const [isGeocoding, setIsGeocoding] = useState(false);
     const geocodeTimer = useRef(null);
 
-    const position = [10.9027, 76.9006];
+    const position = PICKUP_POSITION;
     const [destinationPos, setDestinationPos] = useState([10.9964, 76.9672]);
     const [destinationName, setDestinationName] = useState('');
     const [routePath, setRoutePath] = useState([]);
@@ -81,7 +84,7 @@ export default function Home() {
     const { places } = useSavedPlaces();
 
     useEffect(() => {
-        if (user?.id) {
+        if (localStorage.getItem('token')) {
             if (!socket.connected) socket.connect();
             joinRealtime();
         }
@@ -112,7 +115,7 @@ export default function Home() {
                     if (data.routes?.[0]) {
                         setDriverRoutePath(data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]));
                     }
-                } catch (e) { }
+                } catch { /* route preview is optional */ }
             };
             fetchDriverRoute();
         }

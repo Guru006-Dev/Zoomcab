@@ -11,7 +11,7 @@ const RideAcceptance = () => {
     const rawRide = location.state?.ride;
 
     // Parse the ride data to match UI expectations
-    const [rideRequest, setRideRequest] = useState(() => {
+    const [rideRequest] = useState(() => {
         if (!rawRide) {
             return {
                 id: 'demo_123',
@@ -48,17 +48,19 @@ const RideAcceptance = () => {
         setTimeout(() => navigate('/driver'), 1500);
     };
 
+    // Count down once a second; auto-decline when the time runs out.
     useEffect(() => {
         if (accepted || declined) return;
-        if (timeLeft <= 0) {
-            handleDecline();
-            return;
-        }
-        const timer = setInterval(() => {
-            setTimeLeft(prev => prev - 1);
+        const timer = setTimeout(() => {
+            if (timeLeft <= 1) {
+                setTimeLeft(0);
+                handleDecline();
+            } else {
+                setTimeLeft(timeLeft - 1);
+            }
         }, 1000);
-        return () => clearInterval(timer);
-    }, [timeLeft, accepted, declined]);
+        return () => clearTimeout(timer);
+    }, [timeLeft, accepted, declined]); // eslint-disable-line react-hooks/exhaustive-deps -- handleDecline only reads stable values
 
     const handleAccept = async () => {
         try {

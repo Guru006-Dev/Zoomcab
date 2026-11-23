@@ -1,6 +1,7 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const bcrypt = require('bcryptjs');
+const { seedDemoUsers } = require('./config');
 
 // DB_PATH lets several instances share one database file (see docker-compose.yml).
 const dbPath = process.env.DB_PATH || path.resolve(__dirname, 'zoomcab.db');
@@ -25,10 +26,12 @@ const db = new sqlite3.Database(dbPath, (err) => {
             if (err) {
                 // Table already created
             } else {
-                // Insert default users
-                const insert = 'INSERT OR IGNORE INTO users (username, password, role, loyalty_points) VALUES (?,?,?,?)';
-                db.run(insert, ["Guru", bcrypt.hashSync("123456", 10), "rider", 0]);
-                db.run(insert, ["Driver1", bcrypt.hashSync("password", 10), "driver", 0]);
+                // Demo logins for local development only (see SEED_DEMO_USERS in config).
+                if (seedDemoUsers) {
+                    const insert = 'INSERT OR IGNORE INTO users (username, password, role, loyalty_points) VALUES (?,?,?,?)';
+                    db.run(insert, ["Guru", bcrypt.hashSync("123456", 10), "rider", 0]);
+                    db.run(insert, ["Driver1", bcrypt.hashSync("password", 10), "driver", 0]);
+                }
             }
             
             // Migration for existing table

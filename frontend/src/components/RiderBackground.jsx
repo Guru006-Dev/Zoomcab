@@ -1,5 +1,14 @@
 import React from 'react';
 
+// Random once per page load, not on every render (otherwise the stars jump around).
+const STARS = Array.from({ length: 30 }, () => ({
+    top: `${Math.random() * 40}%`,
+    left: `${Math.random() * 100}%`,
+    width: `${Math.random() * 2}px`,
+    height: `${Math.random() * 2}px`,
+    animationDelay: `${Math.random() * 5}s`,
+}));
+
 const RiderBackground = ({ isNight }) => {
     // Gradients for Day/Night
     // Day: Sunset vibes (Orange/Purple)
@@ -29,17 +38,11 @@ const RiderBackground = ({ isNight }) => {
                 ></div>
 
                 {/* Stars (Night Only) */}
-                {isNight && Array.from({ length: 30 }).map((_, i) => (
+                {isNight && STARS.map((star, i) => (
                     <div
                         key={i}
                         className="absolute bg-white rounded-full animate-twinkle"
-                        style={{
-                            top: `${Math.random() * 40}%`,
-                            left: `${Math.random() * 100}%`,
-                            width: `${Math.random() * 2}px`,
-                            height: `${Math.random() * 2}px`,
-                            animationDelay: `${Math.random() * 5}s`
-                        }}
+                        style={star}
                     />
                 ))}
             </div>
