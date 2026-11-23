@@ -96,6 +96,45 @@ describe('ride flow', () => {
         expect(available.body.map((d) => d.user_id)).toContain(near.id);
     });
 
+    test('loyalty points are awarded on completion and redeemed atomically', async () => {
+        const { body: ride } = await requestRide(rider);
+        await api('POST', `/driver/accept-ride/${ride.id}`, null, near.token);
+        await api('POST', `/driver/complete-ride/${ride.id}`, null, near.token);
+
+        // The loyalty service listens on the Redis event bus; without Redis there is no event.
+        if (!redisUp) return;
+        expect(await eventually(async () =>
+            (await api('GET', '/loyalty/points', null, rider.token)).body.points === 2000)).toBe(true);
+
+        // Two concurrent redemptions of 1500 from 2000: only one can succeed.
+        const results = await Promise.all([
+            api('POST', '/loyalty/redeem', { points: 1500 }, rider.token),
+            api('POST', '/loyalty/redeem', { points: 1500 }, rider.token),
+        ]);
+        expect(results.map((r) => r.status).sort()).toEqual([200, 400]);
+        expect((await api('GET', '/loyalty/points', null, rider.token)).body.points).toBe(500);
+    });
+
+    test('riders can review a completed ride once, and only their own', async () => {
+        const { body: ride } = await requestRide(rider);
+        await api('POST', `/driver/accept-ride/${ride.id}`, null, near.token);
+
+        // Not completed yet
+        expect((await api('POST', '/rating/submit', { rideId: ride.id, rating: 5 }, rider.token)).status).toBe(403);
+        await api('POST', `/driver/complete-ride/${ride.id}`, null, near.token);
+
+        expect((await api('POST', '/rating/submit', { rideId: ride.id, rating: 5 }, bystander.token)).status).toBe(403);
+        expect((await api('POST', '/rating/submit', { rideId: ride.id, rating: 9 }, rider.token)).status).toBe(400);
+
+        const ok = await api('POST', '/rating/submit', { rideId: ride.id, rating: 4, comment: 'Smooth' }, rider.token);
+        expect(ok.status).toBe(201);
+        expect(ok.body.review.driverId).toBe(near.id);
+        expect((await api('POST', '/rating/submit', { rideId: ride.id, rating: 5 }, rider.token)).status).toBe(409);
+
+        const stats = await api('GET', `/rating/driver/${near.id}`);
+        expect(stats.body.stats).toMatchObject({ averageRating: 4, totalReviews: 1 });
+    });
+
     test('only the assigned driver can complete a ride', async () => {
         const { body: ride } = await requestRide(rider);
         await api('POST', `/driver/accept-ride/${ride.id}`, null, near.token);
@@ -149,6 +188,24 @@ describe('auth and access control', () => {
         const { body: ride } = await requestRide(owner);
         expect((await api('GET', `/rider/ride-status/${ride.id}`, null, other.token)).status).toBe(403);
         expect((await api('GET', `/rider/ride-status/${ride.id}`, null, owner.token)).status).toBe(200);
+    });
+
+    test('loyalty and rating writes require a login', async () => {
+        expect((await api('POST', '/loyalty/redeem', { points: 1 })).status).toBe(401);
+        expect((await api('GET', '/loyalty/points')).status).toBe(401);
+        expect((await api('POST', '/rating/submit', { rideId: 1, rating: 5 })).status).toBe(401);
+    });
+
+    test('non-numeric ride ids are a 404, not a server error', async () => {
+        const driver = await createUser('driver');
+        expect((await api('POST', '/driver/accept-ride/demo_123', null, driver.token)).status).toBe(404);
+        expect((await api('GET', '/rider/ride-status/abc', null, driver.token)).status).toBe(404);
+    });
+
+    test('usernames are unique', async () => {
+        const name = `dup${Date.now()}`;
+        expect((await api('POST', '/auth/register', { username: name, password: 'pw123456', role: 'rider' })).status).toBe(201);
+        expect((await api('POST', '/auth/register', { username: name, password: 'pw123456', role: 'rider' })).status).toBe(409);
     });
 
     test('request-ride validates the pickup', async () => {

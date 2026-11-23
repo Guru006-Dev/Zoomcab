@@ -1,5 +1,5 @@
 const express = require('express');
-const db = require('../database');
+const db = require('../db');
 const { authenticateToken } = require('../middleware/auth');
 
 module.exports = (matchingService) => {
@@ -13,11 +13,15 @@ module.exports = (matchingService) => {
 
     const fail = (res) => (err) => res.status(500).json({ error: err.message });
 
-    router.get('/available', (req, res) => {
-        db.all(`SELECT user_id, latitude, longitude, vehicle_type FROM drivers WHERE status = 'available'`, [], (err, rows) => {
-            if (err) return res.status(500).json({ error: err.message });
-            res.json(rows);
-        });
+    router.get('/available', async (req, res) => {
+        try {
+            res.json(await db.many(
+                `SELECT user_id, ST_Y(location::geometry) AS latitude, ST_X(location::geometry) AS longitude, vehicle_type
+                 FROM drivers WHERE status = 'available' AND location IS NOT NULL`
+            ));
+        } catch (err) {
+            res.status(500).json({ error: err.message });
+        }
     });
 
     router.post('/accept-ride/:id', authenticateToken, requireDriver, (req, res) => {

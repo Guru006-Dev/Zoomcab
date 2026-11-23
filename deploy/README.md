@@ -1,7 +1,7 @@
 # Running Zoomcab as a cluster
 
-`docker compose` starts Redis, three backend instances (`api-1`, `api-2`, `api-3`) sharing one
-SQLite database, and nginx, which serves the frontend and load-balances `/api` and `/socket.io`
+`docker compose` starts Postgres (PostGIS), Redis, three backend instances (`api-1`, `api-2`,
+`api-3`) sharing that database, and nginx, which serves the frontend and load-balances `/api` and `/socket.io`
 across the instances.
 
 > Status: written but not yet run. Expect to fix small things the first time.
@@ -37,23 +37,22 @@ Set `DEMO_MODE=false` to turn off the simulated auto-accepting driver.
    sleep 20; curl -s http://localhost:8080/api/health
    docker compose start api-3                       # it rejoins; the current leader keeps the role until it dies
    ```
-5. **Redis outage.** `docker compose stop redis`: the app keeps working on SQLite-only matching
+5. **Redis outage.** `docker compose stop redis`: the app keeps working on Postgres-only matching
    (health shows `"redis":"unavailable"`), cross-instance socket events stop until Redis returns.
 
 ## How the pieces fit
 
 | Concern | Mechanism |
 |---|---|
-| Nearest driver | Redis `GEORADIUS` over `DriverLocations`; SQLite Haversine scan if Redis is down |
-| No double-booking a driver | Lua script reserves the driver in Redis, conditional `UPDATE ... WHERE status='available'` in SQLite |
-| One winner per ride | Conditional `UPDATE rides ... WHERE status='pending'` (atomic in SQLite) |
+| Nearest driver | Redis `GEORADIUS` over `DriverLocations`; PostGIS `ST_DWithin` + KNN if Redis is down |
+| No double-booking a driver | Lua script reserves the driver in Redis, conditional `UPDATE ... WHERE status='available'` in Postgres |
+| One winner per ride | Conditional `UPDATE rides ... WHERE status='pending'` (atomic in Postgres) |
 | Events reach the right user on any instance | Per-user Socket.IO rooms + `@socket.io/redis-adapter` |
 | Background coordination | Bully-style leader election with heartbeat TTL in Redis |
 | Instance discovery | Service registry keys with TTL heartbeats in Redis |
 
 ## Known limits
 
-- All instances share one SQLite file on a Docker volume. It works on one host (WAL + busy
-  timeout), but it is the weak point; Postgres is the planned replacement.
+- One Postgres instance with no replica: the database is not itself highly available.
 - Sockets are WebSocket-only so nginx needs no sticky sessions. Clients that can't use
   WebSocket will not connect.
