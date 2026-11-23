@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { requestRide, socket } from '../api';
+import { requestRide, socket, joinRealtime } from '../api';
 import { MapContainer, TileLayer, Marker, Popup, useMap, Polyline } from 'react-leaflet';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -83,7 +83,7 @@ export default function Home() {
     useEffect(() => {
         if (user?.id) {
             if (!socket.connected) socket.connect();
-            socket.emit('join', { room: user.id });
+            joinRealtime();
         }
         if (routerLoc.state?.rideStatus === 'confirmed') {
             setIsRideActive(true);
