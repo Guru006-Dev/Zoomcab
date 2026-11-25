@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Calendar, Clock, MapPin, Trash2, Plus } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock, MapPin, Trash as Trash2, Plus } from '@phosphor-icons/react';
 import { useNavigate } from 'react-router-dom';
 import GlassBackground from '../components/GlassBackground';
 import autoImage from '../assets/most-popular-transport-india-auto-600nw-2368746743-Photoroom.png';
 import evImage from '../assets/Wuling-Mini-EV-Gear-Photoroom.png';
 import sedanImage from '../assets/MG-Hector(1)-Photoroom.png';
 import suvImage from '../assets/bmw-m5-Photoroom.png';
+
 
 const ScheduleRide = () => {
     const navigate = useNavigate();
@@ -70,7 +71,7 @@ const ScheduleRide = () => {
                 <button onClick={() => navigate('/home')} className="p-3 bg-white/10 rounded-full hover:bg-white/20 transition-colors backdrop-blur-md border border-white/5">
                     <ArrowLeft size={24} className="text-white" />
                 </button>
-                <h1 className="text-2xl font-bold tracking-wider text-white">SCHEDULE RIDE</h1>
+                <h1 className="text-2xl font-semibold tracking-wider text-white">SCHEDULE RIDE</h1>
             </div>
 
             <div className="relative z-10 px-6 mt-4 pb-28 overflow-y-auto h-[calc(100vh-180px)]">
@@ -90,7 +91,7 @@ const ScheduleRide = () => {
                                     <div className="flex items-center gap-3">
                                         <span className="text-3xl">{ride.vehicleDetails.icon}</span>
                                         <div>
-                                            <h3 className="text-lg font-bold text-white">{ride.vehicleDetails.name}</h3>
+                                            <h3 className="text-lg font-semibold text-white">{ride.vehicleDetails.name}</h3>
                                             <p className="text-sm text-orange-400">₹{ride.vehicleDetails.price}</p>
                                         </div>
                                     </div>
@@ -134,7 +135,7 @@ const ScheduleRide = () => {
                         animate={{ opacity: 1, scale: 1 }}
                         className="bg-black/30 backdrop-blur-xl p-6 rounded-2xl border border-orange-500/30 shadow-lg space-y-4"
                     >
-                        <h3 className="text-lg font-bold text-white mb-4">Schedule New Ride</h3>
+                        <h3 className="text-lg font-semibold text-white mb-4">Schedule New Ride</h3>
 
                         <input
                             type="text"
@@ -190,13 +191,13 @@ const ScheduleRide = () => {
                         <div className="flex gap-2 pt-2">
                             <button
                                 onClick={handleSchedule}
-                                className="flex-1 py-3 bg-orange-500 hover:bg-orange-400 rounded-xl text-white font-bold transition-colors"
+                                className="flex-1 py-3 bg-orange-500 hover:bg-orange-400 rounded-xl text-white font-semibold transition-colors"
                             >
                                 Schedule Ride
                             </button>
                             <button
                                 onClick={() => setShowNewRide(false)}
-                                className="px-6 py-3 bg-gray-600 hover:bg-gray-500 rounded-xl text-white font-bold transition-colors"
+                                className="px-6 py-3 bg-gray-600 hover:bg-gray-500 rounded-xl text-white font-semibold transition-colors"
                             >
                                 Cancel
                             </button>

@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { lazy, Suspense } from 'react';
+import PageTransition from './components/PageTransition';
 
 const Landing = lazy(() => import('./landing/Landing'));
 const Profile = lazy(() => import('./pages/Profile'));
@@ -62,7 +63,9 @@ function App() {
   return (
     <Router>
       <Suspense fallback={<div />}>
-        <AnimatedRoutes />
+        <PageTransition>
+          <AnimatedRoutes />
+        </PageTransition>
       </Suspense>
     </Router>
   );

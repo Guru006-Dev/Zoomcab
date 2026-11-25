@@ -1,14 +1,12 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Bell, Shield, HelpCircle, ChevronRight, Moon, Sun, LogOut } from 'lucide-react';
+import { Bell, Shield, Question as HelpCircle, CaretRight as ChevronRight, SignOut as LogOut } from '@phosphor-icons/react';
 import { useNavigate } from 'react-router-dom';
 import PageLayout from '../components/PageLayout';
-import ThemeToggle from '../components/ThemeToggle';
 
 export default function Settings() {
     const navigate = useNavigate();
     const [notifications, setNotifications] = useState(true);
-    const [darkMode, setDarkMode] = useState(false);
 
     const Toggle = ({ on, onToggle }) => (
         <button
@@ -22,7 +20,7 @@ export default function Settings() {
             }}
         >
             <div style={{
-                width: 18, height: 18, borderRadius: '50%', background: '#fff',
+                width: 18, height: 18, borderRadius: '50%', background: 'var(--surface)',
                 position: 'absolute', top: 3, transition: 'left 0.2s',
                 left: on ? 'calc(100% - 21px)' : 3,
                 boxShadow: '0 1px 4px rgba(0,0,0,0.2)',
@@ -35,7 +33,6 @@ export default function Settings() {
             title: 'Preferences',
             items: [
                 { icon: Bell, label: 'Push Notifications', sub: 'Ride updates & offers', toggle: true, state: notifications, handler: () => setNotifications(v => !v) },
-                { icon: Moon, label: 'Dark Mode', sub: 'Switch to dark theme', toggle: true, state: darkMode, handler: () => { document.body.classList.toggle('dark'); setDarkMode(v => !v); } },
             ]
         },
         {
@@ -72,11 +69,11 @@ export default function Settings() {
                                         <Icon size={16} style={{ color: 'var(--primary)' }} />
                                     </div>
                                     <div style={{ flex: 1 }}>
-                                        <p style={{ fontWeight: 700, fontSize: 14, color: 'var(--text-1)' }}>{label}</p>
+                                        <p style={{ fontWeight: 600, fontSize: 14, color: 'var(--text-1)' }}>{label}</p>
                                         <p style={{ fontSize: 12, color: 'var(--text-4)', marginTop: 2 }}>{sub}</p>
                                     </div>
                                     {toggle
-                                        ? (label === 'Dark Mode' ? <ThemeToggle on={state} onToggle={e => { e.stopPropagation(); handler(); }} /> : <Toggle on={state} onToggle={e => { e.stopPropagation(); handler(); }} />)
+                                        ? <Toggle on={state} onToggle={e => { e.stopPropagation(); handler(); }} />
                                         : <ChevronRight size={16} style={{ color: 'var(--text-4)' }} />
                                     }
                                 </motion.div>
@@ -90,8 +87,8 @@ export default function Settings() {
                     onClick={() => { localStorage.clear(); navigate('/login'); }}
                     style={{
                         display: 'flex', alignItems: 'center', gap: 10, padding: '14px 20px',
-                        borderRadius: 16, border: '1px solid #FECACA', background: '#FEF2F2',
-                        cursor: 'pointer', fontFamily: 'var(--font)', fontWeight: 700, fontSize: 14, color: '#DC2626',
+                        borderRadius: 16, border: '1px solid rgba(248,113,113,0.45)', background: 'rgba(248,113,113,0.16)',
+                        cursor: 'pointer', fontFamily: 'var(--font)', fontWeight: 600, fontSize: 14, color: 'var(--danger)',
                         transition: 'all 0.2s',
                     }}
                     onMouseEnter={e => e.currentTarget.style.background = '#FEE2E2'}

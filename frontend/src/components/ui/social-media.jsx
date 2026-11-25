@@ -4,9 +4,9 @@ import { cn } from "../../lib/utils";
 const SocialTooltip = React.forwardRef(
     ({ className, items, ...props }, ref) => {
         const baseIconStyles =
-            "relative flex items-center justify-center w-12 h-12 rounded-full bg-background overflow-hidden transition-all duration-300 ease-in-out group-hover:shadow-lg shadow-sm border border-gray-100";
+            "relative flex items-center justify-center w-12 h-12 rounded-full bg-background overflow-hidden transition-all duration-300 ease-in-out group-hover:shadow-lg shadow-sm border border-white/10";
         const baseSvgStyles =
-            "relative z-10 w-5 h-5 text-gray-700 transition-colors duration-300 ease-in-out group-hover:text-white";
+            "relative z-10 w-5 h-5 text-gray-200 transition-colors duration-300 ease-in-out group-hover:text-white";
         const baseFilledStyles =
             "absolute bottom-0 left-0 w-full h-0 transition-all duration-300 ease-in-out group-hover:h-full";
         const baseTooltipStyles =

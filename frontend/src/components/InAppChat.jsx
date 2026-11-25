@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, X, Phone, Image as ImageIcon, Smile } from 'lucide-react';
+import { PaperPlaneRight as Send, X, Phone, Image as ImageIcon, Smiley as Smile } from '@phosphor-icons/react';
 import { socket } from '../api';
 
 const InAppChat = ({ recipientName = 'Driver', onClose }) => {
@@ -73,11 +73,11 @@ const InAppChat = ({ recipientName = 'Driver', onClose }) => {
         >
             <div className="flex items-center justify-between p-4 border-b bg-[rgba(255,255,255,0.03)] border-white/10">
                 <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold" style={{ background: 'linear-gradient(135deg, #5B4FE8, #7C6EF5)', boxShadow: '0 4px 12px rgba(91,79,232,0.3)' }}>
+                    <div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold" style={{ background: 'var(--primary)', boxShadow: '0 4px 12px rgba(91,79,232,0.3)' }}>
                         {recipientName.charAt(0).toUpperCase()}
                     </div>
                     <div>
-                        <div className="text-white font-bold">{recipientName}</div>
+                        <div className="text-white font-semibold">{recipientName}</div>
                         <div className="text-xs text-[#22c55e] flex items-center gap-1">
                             <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Online
                         </div>
@@ -85,7 +85,7 @@ const InAppChat = ({ recipientName = 'Driver', onClose }) => {
                 </div>
                 <div className="flex items-center gap-2">
                     <button className="p-3 rounded-full transition-colors flex items-center justify-center" style={{ background: 'rgba(91,79,232,0.15)' }}>
-                        <Phone size={20} style={{ color: '#7C6EF5' }} />
+                        <Phone size={20} style={{ color: 'var(--primary-text)' }} />
                     </button>
                     <button onClick={onClose} className="p-3 bg-white/10 hover:bg-white/20 rounded-full transition-colors flex items-center justify-center">
                         <X size={20} className="text-white" />
@@ -113,7 +113,7 @@ const InAppChat = ({ recipientName = 'Driver', onClose }) => {
                                 <div className="text-sm">{message.text}</div>
                             </div>
                             <div
-                                className={`text-xs text-gray-500 mt-1 px-2 ${message.sender === 'me' ? 'text-right' : 'text-left'
+                                className={`text-xs text-gray-400 mt-1 px-2 ${message.sender === 'me' ? 'text-right' : 'text-left'
                                     }`}
                             >
                                 {message.timestamp}

@@ -1,14 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { requestRide, socket, joinRealtime } from '../api';
-import { MapContainer, TileLayer, Marker, Popup, useMap, Polyline } from 'react-leaflet';
+import { MapContainer, Marker, Popup, useMap, Polyline } from 'react-leaflet';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-    MapPin, Navigation, Car, Shield, ChevronRight, Search,
-    Wallet, History, Settings, UserPlus, Phone,
-    MessageCircle, X, LocateFixed, Edit3, Award, TrendingUp,
-    Facebook, Twitter, Instagram, Github, Home as HomeIcon, Wind, Sparkles, MessageSquare
-} from 'lucide-react';
+import { MapPin, NavigationArrow as Navigation, Car, Shield, CaretRight as ChevronRight, MagnifyingGlass as Search, Wallet, ClockCounterClockwise as History, Gear as Settings, UserPlus, Phone, ChatCircle as MessageCircle, X, Crosshair as LocateFixed, PencilSimpleLine as Edit3, Medal as Award, TrendUp as TrendingUp, FacebookLogo as Facebook, TwitterLogo as Twitter, InstagramLogo as Instagram, GithubLogo as Github, House as HomeIcon, Wind, Sparkle as Sparkles, Chat as MessageSquare } from '@phosphor-icons/react';
 import L from 'leaflet';
 import SafetyModal from '../components/SafetyModal';
 import InAppChat from '../components/InAppChat';
@@ -24,6 +19,9 @@ import { SocialTooltip } from '../components/ui/social-media';
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+import MapTiles from '../components/MapTiles';
+import Glyph from '../components/Glyph';
+import { Timer, CurrencyInr } from '@phosphor-icons/react';
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -223,7 +221,7 @@ export default function Home() {
     return (
         <div
             className="app-shell flex h-screen w-full overflow-hidden"
-            style={{ background: '#EDEEF5', fontFamily: "'Inter', 'Segoe UI', sans-serif" }}
+            style={{ background: 'var(--surface2)', fontFamily: 'var(--font)' }}
         >
 
             {/* ══════════════ LEFT SIDEBAR ══════════════ */}
@@ -253,7 +251,7 @@ export default function Home() {
                         style={{
                             width: 130,
                             objectFit: 'contain',
-                            background: 'linear-gradient(135deg, #5B4FE8, #7C6EF5)',
+                            background: 'var(--primary)',
                             padding: '6px 10px',
                             borderRadius: 14,
                             margin: '0 auto',
@@ -265,15 +263,15 @@ export default function Home() {
                 {/* Avatar */}
                 <div data-side-extra style={{
                     borderRadius: 16, padding: 16, textAlign: 'center',
-                    background: 'linear-gradient(135deg,#F3F1FF,#EBF0FF)',
+                    background: 'var(--surface2)',
                     display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10,
                 }}>
                     <div style={{ position: 'relative' }}>
                         <div style={{
                             width: 52, height: 52, borderRadius: 14,
-                            background: 'linear-gradient(135deg,#5B4FE8,#8B7CF6)',
+                            background: 'var(--primary)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontSize: 22, fontWeight: 800, color: '#fff',
+                            fontSize: 22, fontWeight: 600, color: '#fff',
                         }}>
                             {username[0]?.toUpperCase()}
                         </div>
@@ -284,7 +282,7 @@ export default function Home() {
                         }} />
                     </div>
                     <div>
-                        <p style={{ fontWeight: 700, fontSize: 13, color: 'var(--text-1)' }}>{username}</p>
+                        <p style={{ fontWeight: 600, fontSize: 13, color: 'var(--text-1)' }}>{username}</p>
                         <p style={{ fontSize: 11, color: 'var(--text-4)', marginTop: 2 }}>Rider</p>
                     </div>
                 </div>
@@ -301,7 +299,7 @@ export default function Home() {
                                     display: 'flex', alignItems: 'center', gap: 10,
                                     padding: '9px 12px', borderRadius: 12, border: 'none',
                                     cursor: 'pointer', width: '100%', textAlign: 'left',
-                                    background: active ? (special ? 'linear-gradient(135deg, #F3F1FF, #EBF0FF)' : 'var(--surface2)') : 'transparent',
+                                    background: active ? (special ? 'var(--surface2)' : 'var(--surface2)') : 'transparent',
                                     color: active ? 'var(--primary)' : 'var(--text-3)',
                                     fontFamily: 'var(--font)', fontWeight: special ? 700 : 600, fontSize: 13,
                                     transition: 'all 0.15s',
@@ -310,8 +308,8 @@ export default function Home() {
                                 onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'var(--surface2)'; }}
                                 onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent'; }}
                             >
-                                <Icon size={15} style={{ color: special ? '#8B7CF6' : (active ? 'var(--primary)' : 'var(--text-4)'), flexShrink: 0 }} />
-                                <span style={{ flex: 1, color: special ? '#5B4FE8' : 'inherit' }}>{label}</span>
+                                <Icon size={15} style={{ color: special ? 'var(--primary-text)' : (active ? 'var(--primary)' : 'var(--text-4)'), flexShrink: 0 }} />
+                                <span style={{ flex: 1, color: special ? 'var(--primary-text)' : 'inherit' }}>{label}</span>
                                 {badge && <span className="badge badge-orange">{badge}</span>}
                                 {!special && <ChevronRight size={13} style={{ color: 'var(--border)', flexShrink: 0 }} />}
                             </button>
@@ -325,9 +323,9 @@ export default function Home() {
                     style={{
                         display: 'flex', alignItems: 'center', gap: 8,
                         padding: '10px 14px', borderRadius: 12,
-                        background: '#F0FDF4', color: '#16A34A',
-                        border: '1px solid #BBF7D0', cursor: 'pointer',
-                        fontFamily: 'var(--font)', fontWeight: 700, fontSize: 13,
+                        background: 'rgba(61,220,132,0.14)', color: 'var(--success)',
+                        border: '1px solid rgba(61,220,132,0.4)', cursor: 'pointer',
+                        fontFamily: 'var(--font)', fontWeight: 600, fontSize: 13,
                     }}
                 >
                     <Shield size={15} />
@@ -367,22 +365,14 @@ export default function Home() {
                     style={{ height: '100%', width: '100%' }}
                 >
                     <MapUpdater center={position} showRoute={showRoute} routePath={routePath} />
-                    <TileLayer
-                        attribution='&copy; Esri'
-                        url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-                    />
-                    <TileLayer
-                        attribution='&copy; CartoDB'
-                        url="https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}.png"
-                        opacity={0.75}
-                    />
+                    <MapTiles />
                     <Marker position={position}>
-                        <Popup>📍 Amrita University (Pickup)</Popup>
+                        <Popup>Amrita University (Pickup)</Popup>
                     </Marker>
                     {showRoute && (
                         <>
                             <Marker position={destinationPos}>
-                                <Popup>🏁 {destinationName}</Popup>
+                                <Popup>{destinationName}</Popup>
                             </Marker>
                             <Polyline
                                 positions={routePath}
@@ -397,7 +387,7 @@ export default function Home() {
                         <Marker
                             position={driverLocation}
                             icon={new L.DivIcon({
-                                html: `<div style="font-size: 24px; background: white; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(91,79,232,0.4); border: 2.5px solid #5B4FE8; z-index: 9999;">🚘</div>`,
+                                html: `<div style="width: 22px; height: 22px; border-radius: 50%; background: #ffc21a; border: 3px solid #000; box-shadow: 0 0 0 3px #3ddc84;"></div>`,
                                 className: 'driver-live-marker',
                                 iconSize: [36, 36],
                                 iconAnchor: [18, 18]
@@ -421,17 +411,17 @@ export default function Home() {
                 <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[900] pointer-events-none">
                     <div
                         className="flex items-center gap-2 px-4 py-2 rounded-full shadow-lg"
-                        style={{ background: 'rgba(255,255,255,0.88)', backdropFilter: 'blur(12px)', border: '1px solid rgba(91,79,232,0.12)' }}
+                        style={{ background: 'var(--surface)', backdropFilter: 'blur(12px)', border: '1px solid rgba(91,79,232,0.12)' }}
                     >
-                        <MapPin size={13} style={{ color: '#5B4FE8' }} />
-                        <span className="text-xs font-semibold" style={{ color: '#1A1D2E' }}>Coimbatore, Tamil Nadu</span>
+                        <MapPin size={13} style={{ color: 'var(--primary-text)' }} />
+                        <span className="text-xs font-semibold" style={{ color: 'var(--text-1)' }}>Coimbatore, Tamil Nadu</span>
                     </div>
                 </div>
 
                 {/* Re-centre */}
                 <button
                     className="absolute bottom-6 right-6 z-[900] w-11 h-11 rounded-full flex items-center justify-center shadow-lg transition-all hover:scale-105"
-                    style={{ background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(10px)', border: '1px solid rgba(91,79,232,0.15)', color: '#5B4FE8' }}
+                    style={{ background: 'var(--surface)', backdropFilter: 'blur(10px)', border: '1px solid rgba(91,79,232,0.15)', color: 'var(--primary-text)' }}
                 >
                     <LocateFixed size={18} />
                 </button>
@@ -456,7 +446,7 @@ export default function Home() {
                 initial={{ x: 30, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ duration: 0.45, ease: 'easeOut' }}
-                style={{ background: '#fff', boxShadow: '-4px 0 24px rgba(91,79,232,0.06)', width: '22rem' }}
+                style={{ background: 'var(--surface)', boxShadow: '-4px 0 24px rgba(91,79,232,0.06)', width: '22rem' }}
                 className="app-panel shrink-0 flex flex-col z-10 overflow-y-auto border-l border-[#EDEEF5]"
             >
                 {/* ── Active ride header ── */}
@@ -468,26 +458,26 @@ export default function Home() {
                         >
                             <div className="p-4">
                                 <div className="flex justify-between items-center mb-3">
-                                    <span className="font-bold text-sm" style={{ color: '#1A1D2E' }}>Arriving</span>
+                                    <span className="font-semibold text-sm" style={{ color: 'var(--text-1)' }}>Arriving</span>
                                 </div>
                                 <div
                                     className="flex items-center gap-3 p-3 rounded-xl"
-                                    style={{ background: '#F8F7FF', border: '1px solid rgba(91,79,232,0.1)' }}
+                                    style={{ background: 'var(--surface2)', border: '1px solid rgba(91,79,232,0.1)' }}
                                 >
                                     <div
-                                        className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm"
-                                        style={{ background: 'linear-gradient(135deg,#5B4FE8,#8B7CF6)' }}
+                                        className="w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm"
+                                        style={{ background: 'var(--primary)' }}
                                     >
                                         D
                                     </div>
                                     <div className="flex-1">
-                                        <p className="text-sm font-semibold" style={{ color: '#1A1D2E' }}>Your driver</p>
+                                        <p className="text-sm font-semibold" style={{ color: 'var(--text-1)' }}>Your driver</p>
                                     </div>
                                 </div>
                                 <div className="flex gap-2 mt-3">
                                     <button
                                         className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-medium transition-all hover:opacity-80"
-                                        style={{ background: '#F3F4F6', color: '#374151' }}
+                                        style={{ background: 'var(--surface2)', color: 'var(--text-1)' }}
                                     ><MessageCircle size={14} /> Chat</button>
                                     <button
                                         className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-medium transition-all hover:opacity-80"
@@ -495,7 +485,7 @@ export default function Home() {
                                     ><Phone size={14} /> Call</button>
                                     <button
                                         onClick={() => setIsRideActive(false)}
-                                        className="py-2.5 px-3 rounded-xl text-sm transition-all hover:bg-gray-100"
+                                        className="py-2.5 px-3 rounded-xl text-sm transition-all hover:bg-white/10"
                                         style={{ color: '#9CA3AF' }}
                                     ><X size={15} /></button>
                                 </div>
@@ -507,7 +497,7 @@ export default function Home() {
                 {/* ── Inputs ── */}
                 <div style={{ padding: '20px', borderBottom: '1px solid var(--border)' }}>
                     <p style={{
-                        fontSize: 10, fontWeight: 800, textTransform: 'uppercase',
+                        fontSize: 10, fontWeight: 600, textTransform: 'uppercase',
                         letterSpacing: '0.12em', color: 'var(--text-4)', marginBottom: 12
                     }}>
                         Your Journey
@@ -588,17 +578,17 @@ export default function Home() {
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, y: -6 }}
                                     className="absolute left-0 right-0 top-full mt-1 z-50 rounded-2xl overflow-hidden"
-                                    style={{ background: '#fff', boxShadow: '0 12px 40px rgba(91,79,232,0.15)', border: '1px solid rgba(91,79,232,0.1)' }}
+                                    style={{ background: 'var(--surface)', boxShadow: '0 12px 40px rgba(91,79,232,0.15)', border: '1px solid rgba(91,79,232,0.1)' }}
                                 >
                                     {suggestions.map((s, i) => (
                                         <button
                                             key={i}
                                             onClick={() => handleSelectSuggestion(s)}
                                             className="w-full text-left px-4 py-3 flex items-start gap-3 transition-colors hover:bg-[#F8F7FF]"
-                                            style={{ borderBottom: i < suggestions.length - 1 ? '1px solid #F3F4F6' : 'none' }}
+                                            style={{ borderBottom: i < suggestions.length - 1 ? '1px solid var(--border)' : 'none' }}
                                         >
-                                            <MapPin size={13} className="mt-0.5 shrink-0" style={{ color: '#5B4FE8' }} />
-                                            <span className="text-[12px] text-gray-600 leading-snug line-clamp-2">{s.display_name}</span>
+                                            <MapPin size={13} className="mt-0.5 shrink-0" style={{ color: 'var(--primary-text)' }} />
+                                            <span className="text-[12px] text-gray-400 leading-snug line-clamp-2">{s.display_name}</span>
                                         </button>
                                     ))}
                                 </motion.div>
@@ -620,13 +610,13 @@ export default function Home() {
                                 border: '1px solid rgba(91,79,232,0.1)'
                             }}>
                                 {[
-                                    { icon: '📍', val: `${rideDistance} km`, lbl: 'Distance' },
-                                    { icon: '⏱', val: `${rideTime} min`, lbl: 'Est. Time' },
-                                    { icon: '₹', val: selectedVehicle ? `${selectedVehicle.price}` : '--', lbl: 'Fare' },
+                                    { icon: <MapPin size={13} />, val: `${rideDistance} km`, lbl: 'Distance' },
+                                    { icon: <Timer size={13} />, val: `${rideTime} min`, lbl: 'Est. Time' },
+                                    { icon: <CurrencyInr size={13} />, val: selectedVehicle ? `${selectedVehicle.price}` : '--', lbl: 'Fare' },
                                 ].map(item => (
                                     <div key={item.lbl} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
                                         <span style={{ fontSize: 13 }}>{item.icon}</span>
-                                        <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)' }}>{item.val}</span>
+                                        <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)' }}>{item.val}</span>
                                         <span style={{ fontSize: 10, color: 'var(--text-4)' }}>{item.lbl}</span>
                                     </div>
                                 ))}
@@ -639,7 +629,7 @@ export default function Home() {
                 <div style={{ padding: 20, flex: 1 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                         <p style={{
-                            fontSize: 10, fontWeight: 800, textTransform: 'uppercase',
+                            fontSize: 10, fontWeight: 600, textTransform: 'uppercase',
                             letterSpacing: '0.12em', color: 'var(--text-4)'
                         }}>Choose Ride</p>
                         {!destination && <span style={{ fontSize: 10, color: 'var(--text-4)', opacity: 0.7 }}>Enter destination first</span>}
@@ -651,13 +641,13 @@ export default function Home() {
                                 <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: 'rgba(91,79,232,0.15)', animation: 'ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite' }} />
                                 <div style={{
                                     padding: 20, borderRadius: '50%', zIndex: 10, boxShadow: '0 8px 24px rgba(91,79,232,0.25)',
-                                    background: 'linear-gradient(135deg,var(--primary),#8B7CF6)'
+                                    background: 'var(--primary)'
                                 }}>
                                     <Car size={32} color="#fff" />
                                 </div>
                             </div>
                             <div style={{ textAlign: 'center' }}>
-                                <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--primary)', animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite' }}>Finding your driver…</p>
+                                <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--primary)', animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite' }}>Finding your driver…</p>
                                 <p style={{ fontSize: 13, color: 'var(--text-4)', marginTop: 4 }}>Usually under a minute</p>
                             </div>
                             <button
@@ -681,7 +671,7 @@ export default function Home() {
                                         style={{
                                             position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center',
                                             gap: 6, padding: '16px 12px', borderRadius: 16, textAlign: 'center', transition: 'all 0.2s',
-                                            background: isSelected ? 'linear-gradient(135deg,#F3F1FF,#EBF0FF)' : 'var(--surface2)',
+                                            background: isSelected ? 'var(--surface2)' : 'var(--surface2)',
                                             border: isSelected ? '1.5px solid var(--primary)' : '1px solid var(--border)',
                                             boxShadow: isSelected ? '0 8px 20px rgba(91,79,232,0.15)' : 'none',
                                             cursor: 'pointer'
@@ -691,8 +681,8 @@ export default function Home() {
                                             <div style={{ position: 'absolute', top: 10, right: 10, width: 8, height: 8, borderRadius: '50%', background: 'var(--primary)' }} />
                                         )}
                                         <span style={{ fontSize: 28, filter: !isSelected && 'grayscale(0.4) opacity(0.8)' }}>{v.icon}</span>
-                                        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)' }}>{v.name}</span>
-                                        <span style={{ fontSize: 14, fontWeight: 800, color: isSelected ? 'var(--primary)' : 'var(--text-2)' }}>
+                                        <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)' }}>{v.name}</span>
+                                        <span style={{ fontSize: 14, fontWeight: 600, color: isSelected ? 'var(--primary)' : 'var(--text-2)' }}>
                                             {v.price ? `₹${v.price}` : '—'}
                                         </span>
                                         {v.time && <span style={{ fontSize: 10, color: 'var(--text-4)', marginTop: -2 }}>{v.time}</span>}
@@ -712,10 +702,10 @@ export default function Home() {
                             style={{
                                 width: '100%', padding: '16px', borderRadius: 16,
                                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-                                fontFamily: 'var(--font)', fontSize: 14, fontWeight: 800, letterSpacing: '0.04em',
+                                fontFamily: 'var(--font)', fontSize: 14, fontWeight: 600, letterSpacing: '0.04em',
                                 transition: 'all 0.2s', border: 'none', cursor: selectedVehicle && destination ? 'pointer' : 'not-allowed',
                                 ...(selectedVehicle && destination
-                                    ? { background: 'linear-gradient(135deg,var(--primary),#7C6EF5)', color: '#fff', boxShadow: '0 12px 24px rgba(91,79,232,0.3)' }
+                                    ? { background: 'var(--primary)', color: '#fff', boxShadow: '0 12px 24px rgba(91,79,232,0.3)' }
                                     : { background: 'var(--surface2)', color: 'var(--text-4)', border: '1px solid var(--border)' })
                             }}
                         >
@@ -729,12 +719,12 @@ export default function Home() {
                 <div style={{ padding: 20, borderTop: '1px solid var(--border)', background: 'var(--surface)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                         <p style={{
-                            fontSize: 10, fontWeight: 800, textTransform: 'uppercase',
+                            fontSize: 10, fontWeight: 600, textTransform: 'uppercase',
                             letterSpacing: '0.12em', color: 'var(--text-4)'
                         }}>Saved Places</p>
                         <button
                             onClick={() => navigate('/saved-places')}
-                            style={{ fontSize: 11, fontWeight: 700, color: 'var(--primary)', background: 'none', border: 'none', cursor: 'pointer' }}
+                            style={{ fontSize: 11, fontWeight: 600, color: 'var(--primary)', background: 'none', border: 'none', cursor: 'pointer' }}
                         >
                             Manage →
                         </button>
@@ -757,9 +747,9 @@ export default function Home() {
                                 onMouseEnter={e => { e.currentTarget.style.background = 'var(--surface2)'; e.currentTarget.style.borderColor = 'var(--primary)'; }}
                                 onMouseLeave={e => { e.currentTarget.style.background = 'var(--surface)'; e.currentTarget.style.borderColor = 'var(--border)'; }}
                             >
-                                <span style={{ fontSize: 18, filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))' }}>{place.icon}</span>
+                                <span style={{ fontSize: 18, filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))' }}><Glyph name={place.icon} /></span>
                                 <div style={{ flex: 1, overflow: 'hidden' }}>
-                                    <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)', margin: 0 }}>{place.name}</p>
+                                    <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)', margin: 0 }}>{place.name}</p>
                                     <p style={{ fontSize: 11, color: 'var(--text-4)', margin: '2px 0 0 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                         {place.address || 'Tap to set address'}
                                     </p>

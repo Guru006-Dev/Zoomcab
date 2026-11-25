@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, TrendingDown, Fuel, Wrench } from 'lucide-react';
+import { Plus, TrendDown as TrendingDown, GasPump as Fuel, Wrench } from '@phosphor-icons/react';
 import PageLayout from '../components/PageLayout';
+import Glyph from '../components/Glyph';
 
-const iconMap = { fuel: '⛽', maintenance: '🔧', other: '🚗' };
+const iconMap = { fuel: 'fuel', maintenance: 'wrench', other: 'car' };
 
 export default function ExpenseTracker() {
     const [showAdd, setShowAdd] = useState(false);
@@ -42,15 +43,15 @@ export default function ExpenseTracker() {
                     {showAdd && (
                         <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }}
                             className="card" style={{ padding: 20, outline: '1.5px solid var(--border2)' }}>
-                            <p style={{ fontWeight: 700, fontSize: 14, color: 'var(--text-1)', marginBottom: 12 }}>New Expense</p>
+                            <p style={{ fontWeight: 600, fontSize: 14, color: 'var(--text-1)', marginBottom: 12 }}>New Expense</p>
                             <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
                                 {['fuel', 'maintenance', 'other'].map(t => (
                                     <button key={t} onClick={() => setExpType(t)}
                                         style={{
                                             flex: 1, padding: '9px 0', borderRadius: 10, border: `1.5px solid ${expType === t ? 'var(--primary)' : 'var(--border)'}`,
-                                            background: expType === t ? 'var(--surface2)' : 'var(--surface3)', cursor: 'pointer', fontSize: 12, fontWeight: 700, color: expType === t ? 'var(--primary)' : 'var(--text-3)', fontFamily: 'var(--font)', textTransform: 'capitalize'
+                                            background: expType === t ? 'var(--surface2)' : 'var(--surface3)', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: expType === t ? 'var(--primary)' : 'var(--text-3)', fontFamily: 'var(--font)', textTransform: 'capitalize'
                                         }}>
-                                        {iconMap[t]} {t}
+                                        <Glyph name={iconMap[t]} /> {t}
                                     </button>
                                 ))}
                             </div>
@@ -65,12 +66,12 @@ export default function ExpenseTracker() {
                 </AnimatePresence>
 
                 {/* Total hero */}
-                <div style={{ borderRadius: 24, padding: 24, background: 'linear-gradient(135deg,#DC2626,#EF4444)', color: '#fff', textAlign: 'center', boxShadow: '0 12px 40px rgba(220,38,38,0.3)' }}>
+                <div style={{ borderRadius: 24, padding: 24, background: 'var(--surface2)', color: '#fff', textAlign: 'center', boxShadow: '0 12px 40px rgba(220,38,38,0.3)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, opacity: 0.85, marginBottom: 6 }}>
                         <TrendingDown size={14} />
                         <span style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.08em' }}>TOTAL EXPENSES</span>
                     </div>
-                    <div style={{ fontSize: 44, fontWeight: 800, letterSpacing: '-0.04em' }}>₹{total.toLocaleString()}</div>
+                    <div style={{ fontSize: 44, fontWeight: 600, letterSpacing: '-0.04em' }}>₹{total.toLocaleString()}</div>
                     <div style={{ fontSize: 13, opacity: 0.8, marginTop: 4 }}>This month</div>
                 </div>
 
@@ -78,12 +79,12 @@ export default function ExpenseTracker() {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                     <div className="card" style={{ padding: 16, textAlign: 'center' }}>
                         <Fuel size={18} style={{ color: 'var(--orange)', margin: '0 auto 8px' }} />
-                        <div style={{ fontWeight: 800, fontSize: 22, color: 'var(--text-1)' }}>₹{fuel}</div>
+                        <div style={{ fontWeight: 600, fontSize: 22, color: 'var(--text-1)' }}>₹{fuel}</div>
                         <div className="section-label" style={{ marginTop: 4 }}>Fuel</div>
                     </div>
                     <div className="card" style={{ padding: 16, textAlign: 'center' }}>
                         <Wrench size={18} style={{ color: 'var(--primary)', margin: '0 auto 8px' }} />
-                        <div style={{ fontWeight: 800, fontSize: 22, color: 'var(--text-1)' }}>₹{maint}</div>
+                        <div style={{ fontWeight: 600, fontSize: 22, color: 'var(--text-1)' }}>₹{maint}</div>
                         <div className="section-label" style={{ marginTop: 4 }}>Maintenance</div>
                     </div>
                 </div>
@@ -95,12 +96,12 @@ export default function ExpenseTracker() {
                     </div>
                     {expenses.map((exp, i) => (
                         <div key={exp.id} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 20px', borderBottom: i < expenses.length - 1 ? '1px solid var(--border)' : 'none' }}>
-                            <div style={{ fontSize: 24 }}>{iconMap[exp.type]}</div>
+                            <div style={{ fontSize: 24 }}><Glyph name={iconMap[exp.type]} /></div>
                             <div style={{ flex: 1 }}>
                                 <p style={{ fontWeight: 600, fontSize: 13, color: 'var(--text-1)' }}>{exp.description}</p>
                                 <p style={{ fontSize: 11, color: 'var(--text-4)', marginTop: 2 }}>{exp.date}</p>
                             </div>
-                            <span style={{ fontWeight: 700, fontSize: 14, color: '#DC2626' }}>−₹{exp.amount}</span>
+                            <span style={{ fontWeight: 600, fontSize: 14, color: 'var(--danger)' }}>−₹{exp.amount}</span>
                         </div>
                     ))}
                 </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Car, Phone } from "lucide-react";
+import { Car, Phone } from "@phosphor-icons/react";
 import { cn } from "../../lib/utils";
 
 // Mapped directly to what a ZoomCab matched driver would look like
@@ -20,7 +20,7 @@ export function TestimonialCarousel({ className, vehicleName }) {
       {/* Single Unified Vertical Layout */}
       <div className='w-full mx-auto text-center bg-transparent'>
         {/* Avatar */}
-        <div className='w-32 h-32 mx-auto bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden mb-4 border-4 border-white shadow-lg'>
+        <div className='w-32 h-32 mx-auto bg-white/10 dark:bg-gray-700 rounded-full overflow-hidden mb-4 border-4 border-white shadow-lg'>
           <AnimatePresence mode='wait'>
             <motion.div
               key={matchedDriver.imageUrl}
@@ -50,7 +50,7 @@ export function TestimonialCarousel({ className, vehicleName }) {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.4, ease: "easeInOut" }}
             >
-              <h2 className='text-lg font-bold mb-1' style={{ color: 'var(--text-1)' }}>
+              <h2 className='text-lg font-semibold mb-1' style={{ color: 'var(--text-1)' }}>
                 {matchedDriver.name}
               </h2>
 
@@ -63,7 +63,7 @@ export function TestimonialCarousel({ className, vehicleName }) {
               </p>
 
               <div className='flex space-x-4 pt-4'>
-                <button className='bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white font-semibold py-3 px-4 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition flex-1 border border-gray-200 dark:border-gray-700 cursor-pointer flex items-center justify-center gap-2'>
+                <button className='bg-white/10 dark:bg-gray-800 text-white dark:text-white font-semibold py-3 px-4 rounded-xl hover:bg-white/10 dark:hover:bg-gray-700 transition flex-1 border border-white/10 dark:border-gray-700 cursor-pointer flex items-center justify-center gap-2'>
                   <Car className='w-5 h-5' /> Track
                 </button>
                 <button className='bg-indigo-600 dark:bg-indigo-500 text-white font-semibold py-3 px-4 rounded-xl hover:bg-indigo-700 dark:hover:bg-indigo-600 transition flex-1 border-none shadow-lg cursor-pointer flex items-center justify-center gap-2'>

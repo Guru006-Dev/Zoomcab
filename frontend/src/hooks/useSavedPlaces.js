@@ -15,8 +15,8 @@ const useSavedPlaces = () => {
     const [places, setPlaces] = useState(() => {
         const stored = getStoredData();
         return stored?.places || [
-            { id: 'home', name: 'Home', address: '', icon: '🏠', lat: null, lng: null },
-            { id: 'work', name: 'Work', address: '', icon: '💼', lat: null, lng: null },
+            { id: 'home', name: 'Home', address: '', icon: 'home', lat: null, lng: null },
+            { id: 'work', name: 'Work', address: '', icon: 'work', lat: null, lng: null },
         ];
     });
 
@@ -37,7 +37,7 @@ const useSavedPlaces = () => {
 
     const addCustomPlace = (name, address, lat, lng) => {
         const id = `custom_${Date.now()}`;
-        setPlaces(prev => [...prev, { id, name, address, icon: '📍', lat, lng }]);
+        setPlaces(prev => [...prev, { id, name, address, icon: 'pin', lat, lng }]);
     };
 
     const removePlace = (id) => {

@@ -1,84 +1,10 @@
 @import "tailwindcss";
+@import "./theme.css";
 
 /* ═══════════════════════════════════════════════════════════
    ZOOMCAB — Global Design System
    Palette: Orizon Travel  •  Font: Plus Jakarta Sans
 ═══════════════════════════════════════════════════════════ */
-
-:root {
-  /* Colors */
-  --bg: #EDEEF5;
-  /* page lavender-gray */
-  --surface: #FFFFFF;
-  /* panel white */
-  --surface2: #F8F7FF;
-  /* light indigo tint */
-  --surface3: #F3F4F6;
-  /* neutral light */
-
-  --primary: #5B4FE8;
-  /* indigo/violet */
-  --primary-lt: #EBF0FF;
-  /* primary pale */
-  --primary-dk: #4840CC;
-  /* primary dark */
-
-  --success: #22C55E;
-  --warning: #F59E0B;
-  --danger: #EF4444;
-  --orange: #F97316;
-
-  --text-1: #1A1D2E;
-  /* headings */
-  --text-2: #374151;
-  /* body */
-  --text-3: #6B7280;
-  /* muted */
-  --text-4: #9CA3AF;
-  /* placeholder */
-
-  --border: #EDEEF5;
-  --border2: rgba(91, 79, 232, 0.12);
-
-  --shadow-sm: 0 1px 3px rgba(91, 79, 232, 0.06);
-  --shadow-md: 0 4px 16px rgba(91, 79, 232, 0.10);
-  --shadow-lg: 0 8px 32px rgba(91, 79, 232, 0.14);
-
-  /* Typography */
-  --font: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
-}
-
-body.dark {
-  --bg: #000000;
-  /* pure black background */
-  --surface: #1A1A1A;
-  /* dark grey panel */
-  --surface2: #242424;
-  /* slightly lighter dark grey */
-  --surface3: #2A2A2A;
-  /* borders/neutral */
-
-  --primary: #7C6EF5;
-  /* tweaked bright primary for dark contrast */
-  --primary-lt: rgba(124, 110, 245, 0.15);
-  --primary-dk: #5B4FE8;
-
-  --text-1: #FFFFFF;
-  /* pure white headings */
-  --text-2: #E5E7EB;
-  /* light body */
-  --text-3: #9CA3AF;
-  /* muted */
-  --text-4: #6B7280;
-  /* placeholder */
-
-  --border: #333333;
-  --border2: rgba(255, 255, 255, 0.06);
-
-  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.4);
-  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.6);
-  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.8);
-}
 
 /* ── Reset ── */
 *,
@@ -155,10 +81,10 @@ body {
   justify-content: center;
   gap: 8px;
   padding: 12px 24px;
-  background: linear-gradient(135deg, var(--primary), #7C6EF5);
+  background: var(--primary);
   color: #fff;
   font-family: var(--font);
-  font-weight: 700;
+  font-weight: 600;
   font-size: 14px;
   border-radius: 14px;
   border: none;
@@ -237,7 +163,7 @@ body {
   padding: 3px 10px;
   border-radius: 100px;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .badge-primary {
@@ -246,27 +172,23 @@ body {
 }
 
 .badge-success {
-  background: #F0FDF4;
-  color: #16A34A;
-  border: 1px solid #BBF7D0;
+  background: rgba(61,220,132,0.14);
+  color: var(--success);
 }
 
 .badge-warning {
-  background: #FFFBEB;
-  color: #D97706;
-  border: 1px solid #FDE68A;
+  background: rgba(251,191,36,0.14);
+  color: var(--warning);
 }
 
 .badge-danger {
-  background: #FEF2F2;
-  color: #DC2626;
-  border: 1px solid #FECACA;
+  background: rgba(248,113,113,0.16);
+  color: var(--danger);
 }
 
 .badge-orange {
-  background: #FFF7ED;
-  color: #EA580C;
-  border: 1px solid #FED7AA;
+  background: rgba(251,146,60,0.14);
+  color: var(--orange);
 }
 
 /* Divider */
@@ -287,7 +209,7 @@ body {
 /* Section Header */
 .section-label {
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--text-4);

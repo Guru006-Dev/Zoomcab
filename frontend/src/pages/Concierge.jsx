@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Send, Map, Coffee, Languages } from 'lucide-react';
+import { PaperPlaneRight as Send, MapTrifold as Map, Coffee, Translate as Languages } from '@phosphor-icons/react';
 import PageLayout from '../components/PageLayout';
 import api from '../api';
 import ReactMarkdown from 'react-markdown';
@@ -116,7 +116,7 @@ export default function Concierge() {
                             disabled={!input.trim() || isLoading}
                             style={{
                                 padding: '0 20px', borderRadius: 12, border: 'none',
-                                background: 'var(--primary)', color: '#fff', fontWeight: 700, cursor: 'pointer'
+                                background: 'var(--primary)', color: '#fff', fontWeight: 600, cursor: 'pointer'
                             }}
                         >
                             <Send size={18} />

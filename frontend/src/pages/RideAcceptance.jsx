@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Navigation, Clock, DollarSign, User, X, Check, Phone } from 'lucide-react';
+import { MapPin, NavigationArrow as Navigation, Clock, CurrencyDollar as DollarSign, User, X, Check, Phone } from '@phosphor-icons/react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import GlassBackground from '../components/GlassBackground';
 import { acceptRide, rejectRide } from '../api';
+import { XCircle, CheckCircle, Star } from '@phosphor-icons/react';
 
 const RideAcceptance = () => {
     const navigate = useNavigate();
@@ -106,8 +107,8 @@ const RideAcceptance = () => {
                     animate={{ scale: 1, opacity: 1 }}
                     className="text-center"
                 >
-                    <div className="text-6xl mb-4">❌</div>
-                    <div className="text-2xl font-bold text-white">Ride Declined</div>
+                    <XCircle size={60} weight="duotone" className="mx-auto mb-4" />
+                    <div className="text-2xl font-semibold text-white">Ride Declined</div>
                     <div className="text-gray-400 mt-2">Looking for next ride...</div>
                 </motion.div>
             </div>
@@ -123,8 +124,8 @@ const RideAcceptance = () => {
                     animate={{ scale: 1, opacity: 1 }}
                     className="text-center"
                 >
-                    <div className="text-6xl mb-4">✅</div>
-                    <div className="text-2xl font-bold text-white">Ride Accepted!</div>
+                    <CheckCircle size={60} weight="duotone" className="mx-auto mb-4" />
+                    <div className="text-2xl font-semibold text-white">Ride Accepted!</div>
                     <div className="text-gray-400 mt-2">Heading to pickup location...</div>
                 </motion.div>
             </div>
@@ -162,7 +163,7 @@ const RideAcceptance = () => {
                         />
                     </svg>
                     <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="text-4xl font-black" style={{ color: '#5B4FE8' }}>{timeLeft}s</div>
+                        <div className="text-4xl font-semibold" style={{ color: 'var(--primary-text)' }}>{timeLeft}s</div>
                     </div>
                 </div>
 
@@ -175,30 +176,30 @@ const RideAcceptance = () => {
                     {/* Header */}
                     <div className="flex items-center justify-between mb-6">
                         <div>
-                            <h2 className="text-2xl font-bold text-white">New Ride Request</h2>
-                            <div className="text-sm font-semibold mt-1" style={{ color: '#5B4FE8' }}>
+                            <h2 className="text-2xl font-semibold text-white">New Ride Request</h2>
+                            <div className="text-sm font-semibold mt-1" style={{ color: 'var(--primary-text)' }}>
                                 {rideRequest.surgeMultiplier}x Surge
                             </div>
                         </div>
                         <div className="text-right">
-                            <div className="text-3xl font-black text-white">₹{rideRequest.estimatedFare}</div>
+                            <div className="text-3xl font-semibold text-white">₹{rideRequest.estimatedFare}</div>
                             <div className="text-xs text-gray-400">{rideRequest.distance}</div>
                         </div>
                     </div>
 
                     {/* Rider Info */}
                     <div className="flex items-center gap-4 mb-6 p-4 rounded-2xl" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                        <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #5B4FE8, #7C6EF5)' }}>
+                        <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ background: 'var(--primary)' }}>
                             <User size={32} className="text-white" />
                         </div>
                         <div className="flex-1">
-                            <div className="text-lg font-bold text-white">{rideRequest.rider}</div>
+                            <div className="text-lg font-semibold text-white">{rideRequest.rider}</div>
                             <div className="flex items-center gap-1 text-yellow-400">
                                 <span className="text-sm">{rideRequest.rating}</span>
-                                <span>★</span>
+                                <Star size={12} weight="fill" />
                             </div>
                         </div>
-                        <button className="p-3 rounded-full transition-colors" style={{ background: 'rgba(91,79,232,0.15)', color: '#5B4FE8' }}>
+                        <button className="p-3 rounded-full transition-colors" style={{ background: 'rgba(91,79,232,0.15)', color: 'var(--primary-text)' }}>
                             <Phone size={20} />
                         </button>
                     </div>
@@ -207,7 +208,7 @@ const RideAcceptance = () => {
                     <div className="space-y-4 mb-6">
                         <div className="flex items-start gap-3">
                             <div className="mt-1 p-2 rounded-full" style={{ background: 'rgba(91,79,232,0.15)' }}>
-                                <MapPin size={20} style={{ color: '#5B4FE8' }} />
+                                <MapPin size={20} style={{ color: 'var(--primary-text)' }} />
                             </div>
                             <div className="flex-1">
                                 <div className="text-xs text-gray-400 uppercase tracking-wider mb-1">Pickup</div>
@@ -227,16 +228,16 @@ const RideAcceptance = () => {
 
                     {/* Estimated Time */}
                     <div className="flex items-center gap-2 mb-6 p-3 rounded-xl border" style={{ background: 'rgba(91,79,232,0.1)', borderColor: 'rgba(91,79,232,0.2)' }}>
-                        <Clock size={18} style={{ color: '#7C6EF5' }} />
+                        <Clock size={18} style={{ color: 'var(--primary-text)' }} />
                         <span className="text-sm text-gray-300">Estimated trip time: </span>
-                        <span className="text-sm font-bold text-white">{rideRequest.estimatedTime}</span>
+                        <span className="text-sm font-semibold text-white">{rideRequest.estimatedTime}</span>
                     </div>
 
                     {/* Action Buttons */}
                     <div className="grid grid-cols-2 gap-4">
                         <button
                             onClick={handleDecline}
-                            className="py-4 hover:bg-white/10 rounded-xl font-bold text-lg flex items-center justify-center gap-2 transition-colors shadow-lg"
+                            className="py-4 hover:bg-white/10 rounded-xl font-semibold text-lg flex items-center justify-center gap-2 transition-colors shadow-lg"
                             style={{ background: 'rgba(255,255,255,0.05)', color: '#fff', border: '1px solid rgba(255,255,255,0.1)' }}
                         >
                             <X size={24} />
@@ -244,7 +245,7 @@ const RideAcceptance = () => {
                         </button>
                         <button
                             onClick={handleAccept}
-                            className="py-4 rounded-xl text-white font-bold text-lg flex items-center justify-center gap-2 transition-colors"
+                            className="py-4 rounded-xl text-white font-semibold text-lg flex items-center justify-center gap-2 transition-colors"
                             style={{ background: '#5B4FE8', boxShadow: '0 4px 20px rgba(91,79,232,0.4)' }}
                         >
                             <Check size={24} />
