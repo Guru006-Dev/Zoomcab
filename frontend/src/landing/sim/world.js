@@ -33,7 +33,7 @@ function release(world) {
     const i = world.drivers.findIndex((d) => d.id === world.ride?.driverId);
     if (i < 0) return;
     world.drivers[i].status = 'free';
-    world.motion[i].path = [];
+    world.motion[i].path = world.motion[i].path.slice(0, 1); // finish the segment, stay on the road
 }
 
 export function requestRide(world, pickup, dropoff) {

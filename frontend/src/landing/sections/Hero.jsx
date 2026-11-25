@@ -24,7 +24,7 @@ const Hero = forwardRef(function Hero(_, ref) {
     const ride = useCallback((node) => { requestRide(world, PICKUP, node); }, [world]);
     const watch = useCallback(() => {
         ride(PLACES[Math.floor(Math.random() * PLACES.length)].node);
-        document.getElementById('hero')?.scrollIntoView({ behavior: 'smooth' });
+        document.getElementById('hero')?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
     }, [ride]);
     useImperativeHandle(ref, () => ({ watch }), [watch]);
     useEffect(() => { ride(PLACES[1].node); }, [ride]);

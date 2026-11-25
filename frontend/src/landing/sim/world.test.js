@@ -38,3 +38,13 @@ test('the same seed gives the same city', () => {
     expect(createWorld(g, { seed: 7 }).drivers).toEqual(createWorld(g, { seed: 7 }).drivers);
     expect(createWorld(g).drivers).toHaveLength(12);
 });
+
+test('a replaced driver stays on the road', () => {
+    const w = createWorld(g, { seed: 3 });
+    requestRide(w, pickup, dropoff);
+    for (let i = 0; i < 20; i++) step(w, 0.1);
+    const i = w.drivers.findIndex((d) => d.id === w.ride.driverId);
+    const next = w.motion[i].path[0];
+    requestRide(w, dropoff, pickup);
+    expect(w.motion[i].path).toEqual([next]);
+});
