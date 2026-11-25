@@ -45,6 +45,7 @@ export const getRideStatus = (rideId) => api.get(`/rider/ride-status/${rideId}`)
 
 // Driver APIs
 // Driver APIs
+export const getDriverRating = (driverId) => api.get(`/rating/driver/${driverId}`);
 export const getAvailableDrivers = () => api.get('/driver/available');
 export const acceptRide = (rideId) => api.post(`/driver/accept-ride/${rideId}`);
 export const rejectRide = (rideId) => api.post(`/driver/reject-ride/${rideId}`);

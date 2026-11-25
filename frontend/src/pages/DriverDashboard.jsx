@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { socket, updateLocation, completeRide, joinRealtime } from '../api';
+import { socket, updateLocation, completeRide, joinRealtime, getDriverRating } from '../api';
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Power, TrendingUp, BarChart3, Coffee, Receipt, MapPin, Star, ChevronRight, Facebook, Twitter, Instagram, Github } from 'lucide-react';
@@ -54,6 +54,12 @@ const DriverDashboard = () => {
     const [activeRide, setActiveRide] = useState(arrivedWithRide ? location.state : null);
     const [isPaid, setIsPaid] = useState(false);
     const [routeCoords, setRouteCoords] = useState([]);
+    const [rating, setRating] = useState(null);
+    const ratingText = rating?.totalReviews ? `${rating.averageRating} ★` : '—';
+
+    useEffect(() => {
+        getDriverRating(driverId).then(res => setRating(res.data.stats)).catch(() => { /* no rating to show */ });
+    }, [driverId]);
 
     useEffect(() => {
         if (activeRide) {
@@ -140,10 +146,10 @@ const DriverDashboard = () => {
     }, [isOnline, driverId, navigate, activeRide, routeCoords]);
 
     return (
-        <div style={{ display: 'flex', height: '100vh', background: 'var(--bg)', fontFamily: 'var(--font)', overflow: 'hidden' }}>
+        <div className="app-shell" style={{ display: 'flex', height: '100vh', background: 'var(--bg)', fontFamily: 'var(--font)', overflow: 'hidden' }}>
 
             {/* Left sidebar */}
-            <motion.aside
+            <motion.aside className="app-side"
                 initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ duration: 0.35 }}
                 style={{
                     width: 260, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 16,
@@ -152,7 +158,7 @@ const DriverDashboard = () => {
                 }}
             >
                 {/* Brand */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 4, position: 'relative' }}>
+                <div data-side-extra style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 4, position: 'relative' }}>
                     <img
                         src={ZoomcabLogo}
                         alt="ZoomCab Logo"
@@ -173,7 +179,7 @@ const DriverDashboard = () => {
                 </div>
 
                 {/* Profile */}
-                <div style={{ borderRadius: 16, padding: 16, background: 'linear-gradient(135deg,#F3F1FF,#EBF0FF)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+                <div className="driver-profile" style={{ borderRadius: 16, padding: 16, background: 'linear-gradient(135deg,#F3F1FF,#EBF0FF)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
                     <div style={{ position: 'relative' }}>
                         <div style={{ width: 64, height: 64, borderRadius: 18, background: 'linear-gradient(135deg,#5B4FE8,#8B7CF6)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26, fontWeight: 800, color: '#fff' }}>
                             {driverName[0]?.toUpperCase()}
@@ -184,8 +190,7 @@ const DriverDashboard = () => {
                         <p style={{ fontWeight: 700, fontSize: 14, color: 'var(--text-1)' }}>{driverName}</p>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 4, justifyContent: 'center', marginTop: 4 }}>
                             <Star size={12} style={{ color: '#FACC15', fill: '#FACC15' }} />
-                            <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-2)' }}>4.89</span>
-                            <span style={{ fontSize: 11, color: 'var(--text-4)' }}>· Excellent</span>
+                            <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-2)' }}>{ratingText}</span>
                         </div>
                     </div>
                     {/* Toggle */}
@@ -206,7 +211,7 @@ const DriverDashboard = () => {
                 </div>
 
                 {/* Location */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', borderRadius: 12, background: 'var(--surface3)', border: '1px solid var(--border)' }}>
+                <div data-side-extra style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', borderRadius: 12, background: 'var(--surface3)', border: '1px solid var(--border)' }}>
                     <MapPin size={14} style={{ color: 'var(--primary)', flexShrink: 0 }} />
                     <div>
                         <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-2)' }}>Current Location</p>
@@ -265,7 +270,7 @@ const DriverDashboard = () => {
                 </button>
 
                 {/* Social Media Footer */}
-                <div style={{ marginTop: 8, display: 'flex', justifyContent: 'center' }}>
+                <div data-side-extra style={{ marginTop: 8, display: 'flex', justifyContent: 'center' }}>
                     <SocialTooltip
                         items={[
                             { href: "#", ariaLabel: "Facebook", tooltip: "Facebook", color: "#1877F2", icon: Facebook },
@@ -280,7 +285,7 @@ const DriverDashboard = () => {
             </motion.aside>
 
             {/* Center — Map */}
-            <div style={{ flex: 1, position: 'relative' }}>
+            <div className="app-map" style={{ flex: 1, position: 'relative' }}>
                 <MapContainer center={position} zoom={13} zoomControl={false} style={{ height: '100%', width: '100%' }}>
                     <TileLayer attribution='&copy; Esri' url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}" />
                     <TileLayer attribution='&copy; CartoDB' url="https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}.png" opacity={0.75} />
@@ -326,7 +331,6 @@ const DriverDashboard = () => {
                                 <div style={{ width: 10, height: 10, background: 'var(--success)', borderRadius: '50%', position: 'relative', zIndex: 1 }} />
                             </div>
                             <span style={{ fontWeight: 700, fontSize: 13, color: '#16A34A' }}>Looking for rides</span>
-                            <span className="badge badge-orange">🔥 2.5x Surge</span>
                         </motion.div>
                     )}
                 </AnimatePresence>
@@ -387,21 +391,21 @@ const DriverDashboard = () => {
                         >
                             <div style={{ fontSize: 48, marginBottom: 12 }}>🚘</div>
                             <h2 style={{ fontWeight: 800, fontSize: 20, color: 'var(--text-1)', marginBottom: 6 }}>You're Offline</h2>
-                            <p style={{ fontSize: 13, color: 'var(--text-4)' }}>Toggle the switch in the sidebar to start accepting rides.</p>
+                            <p style={{ fontSize: 13, color: 'var(--text-4)' }}>Tap Go Online to start accepting rides.</p>
                         </motion.div>
                     </div>
                 )}
             </div>
 
             {/* Right — Stats panel */}
-            <motion.aside
+            <motion.aside className="app-panel"
                 initial={{ x: 20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ duration: 0.35 }}
                 style={{ width: 280, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 12, padding: 20, background: 'var(--surface)', borderLeft: '1px solid var(--border)', boxShadow: '-4px 0 24px rgba(91,79,232,0.06)', overflowY: 'auto', zIndex: 10 }}
             >
-                <p className="section-label" style={{ marginBottom: 4 }}>Today's Summary</p>
+                <p className="section-label" style={{ marginBottom: 4 }}>Summary</p>
 
-                <Stat label="Earnings" value="₹1,450" sub="18 rides completed" color="#16A34A" colorBg="#F0FDF4" icon={TrendingUp} onClick={() => navigate('/driver-earnings')} />
-                <Stat label="Rating" value="4.89 ★" sub="Excellent performance" color="#D97706" colorBg="#FFFBEB" icon={BarChart3} onClick={() => navigate('/driver-stats')} />
+                <Stat label="Earnings" value="View" sub="Sample data for now" color="#16A34A" colorBg="#F0FDF4" icon={TrendingUp} onClick={() => navigate('/driver-earnings')} />
+                <Stat label="Rating" value={ratingText} sub={rating?.totalReviews ? `${rating.totalReviews} review${rating.totalReviews === 1 ? '' : 's'}` : 'No reviews yet'} color="#D97706" colorBg="#FFFBEB" icon={BarChart3} onClick={() => navigate('/driver-stats')} />
 
                 <div className="divider" style={{ margin: '4px 0' }} />
                 <p className="section-label">Quick Actions</p>

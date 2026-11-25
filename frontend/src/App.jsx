@@ -20,6 +20,7 @@ import BreakScheduler from './pages/BreakScheduler';
 import ExpenseTracker from './pages/ExpenseTracker';
 import ActiveRideNavigation from './pages/ActiveRideNavigation';
 import Concierge from './pages/Concierge';
+import NotFound from './pages/NotFound';
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -47,6 +48,7 @@ function AnimatedRoutes() {
         <Route path="/expense-tracker" element={<ExpenseTracker />} />
         <Route path="/active-ride" element={<ActiveRideNavigation />} />
         <Route path="/concierge" element={<Concierge />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </AnimatePresence>
   );

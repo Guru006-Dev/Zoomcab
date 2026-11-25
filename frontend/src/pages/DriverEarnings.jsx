@@ -23,7 +23,7 @@ export default function DriverEarnings() {
     const progress = Math.min((data.total / goal) * 100, 100);
 
     return (
-        <PageLayout title="Earnings" subtitle="Your driver earnings summary">
+        <PageLayout sample title="Earnings" subtitle="Your driver earnings summary">
             <div style={{ maxWidth: 700, display: 'flex', flexDirection: 'column', gap: 16 }}>
 
                 {/* Period selector */}
