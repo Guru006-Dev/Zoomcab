@@ -2,9 +2,7 @@ import { useRef } from 'react';
 import { Link } from 'react-router-dom';
 import '@fontsource-variable/geist';
 import './landing.css';
-import Hero from './sections/Hero';
-import Story from './sections/Story';
-import Tagline from './sections/Tagline';
+import Film from './film/Film';
 import AppShots from './sections/AppShots';
 import Build from './sections/Build';
 import Actions, { REPO } from './sections/Actions';
@@ -15,17 +13,15 @@ export default function Landing() {
 
     return (
         <div className="lp">
-            <a className="lp-skip" href="#how">Skip to how it works</a>
+            <a className="lp-skip" href="#app">Skip to the app</a>
             <nav className="lp-nav" aria-label="Main">
                 <a href="#hero" className="lp-brand">Zoomcab</a>
-                <a href="#how">How it works</a>
+                <a href="#hero">How it works</a>
                 <a href={REPO}>Code</a>
                 <Link to="/login">Sign in</Link>
             </nav>
             <main>
-                <Hero ref={hero} />
-                <Story />
-                <Tagline />
+                <Film ref={hero} />
                 <AppShots />
                 <Build />
                 <section className="lp-section lp-end" aria-labelledby="end-title">
@@ -36,6 +32,7 @@ export default function Landing() {
             <footer className="lp-footer">
                 <a href={REPO}>GitHub</a>
                 <span>Map data <a href="https://www.openstreetmap.org/copyright">© OpenStreetMap contributors</a></span>
+                <span>Buildings by Kenney (CC0) in a stylised city</span>
             </footer>
         </div>
     );

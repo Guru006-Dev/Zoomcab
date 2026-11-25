@@ -14,8 +14,9 @@ Leaflet + OSRM routing · Google Gemini (concierge chatbot)
 
 ## What it does
 
-`/` is a landing page with a simulated matching map of Coimbatore; sign in is at `/login`. Road
-data is © OpenStreetMap contributors (ODbL), exported with `frontend/scripts/export-roads.mjs`.
+`/` is a landing page: a scroll driven 3D night ride across a stylised Coimbatore, with a 2D map
+on narrow screens; sign in is at `/login`. Building models are Kenney's City Kit (CC0). Map
+data is © OpenStreetMap contributors (ODbL), exported with `frontend/scripts/export-roads.mjs` and `export-buildings.mjs`.
 Set `VITE_DEMO_URL` at build time to show a live demo button.
 
 **Riders** pick a destination on the map, choose a vehicle and request a ride. The nearest free

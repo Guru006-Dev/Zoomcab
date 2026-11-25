@@ -8,7 +8,7 @@ const SHOTS = [
 
 export default function AppShots() {
     return (
-        <section className="lp-section" aria-labelledby="app-title">
+        <section id="app" className="lp-section" aria-labelledby="app-title">
             <h2 id="app-title">The app behind it</h2>
             <div className="lp-shots">
                 {SHOTS.map((shot) => (
