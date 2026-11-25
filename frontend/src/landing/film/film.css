@@ -28,3 +28,6 @@
 @media (prefers-reduced-motion: reduce) {
   .lp-caption { transform: none; transition: opacity 300ms linear; }
 }
+
+.lp-film-announce { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.lp-film:focus { outline: none; }

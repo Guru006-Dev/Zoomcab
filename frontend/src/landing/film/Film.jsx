@@ -41,6 +41,7 @@ const Film = forwardRef(function Film(_, ref) {
                 return;
             }
             const box = track.current;
+            box.focus({ preventScroll: true });
             const step = (box.offsetHeight - window.innerHeight) / LAST;
             const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
             window.scrollTo({ top: box.offsetTop + step, behavior: reduced ? 'auto' : 'smooth' });
@@ -55,6 +56,7 @@ const Film = forwardRef(function Film(_, ref) {
         let last = 0;
         let progress = null;
         let current = -1;
+        let away = false;
         const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         // a fresh canvas each time, because a disposed graphics context cannot be reused
         const canvas = document.createElement('canvas');
@@ -73,8 +75,14 @@ const Film = forwardRef(function Film(_, ref) {
 
         const tick = (now) => {
             frame = requestAnimationFrame(tick);
-            if (!track.current) return; // hidden while another page loads
-            const box = track.current.getBoundingClientRect();
+            const box = track.current?.getBoundingClientRect();
+            // Suspense hides the film with display:none while another page loads
+            const gone = !box || box.height === 0;
+            if (gone !== away) {
+                away = gone;
+                audio.hidden(gone);
+            }
+            if (gone) return;
             const dt = Math.min((now - last) / 1000, 0.1);
             last = now;
             if (box.bottom < 0) return; // scrolled past the film
@@ -126,22 +134,23 @@ const Film = forwardRef(function Film(_, ref) {
     if (!film) return <Hero ref={hero} />;
 
     return (
-        <section id="hero" className="lp-film" ref={track} aria-label="One night ride">
+        <section id="hero" className="lp-film" ref={track} tabIndex={-1} aria-label="One night ride">
             <div className="lp-film-view">
                 <a className="lp-film-skip" href="#app">Skip the film</a>
                 <div className="lp-film-stage" ref={stage} />
-                <div className="lp-caption" data-on={scene === 0}>
+                <div className="lp-caption" data-on={scene === 0} inert={scene !== 0}>
                     <h1>Watch a ride<br />find its driver</h1>
                     <p>{SCENES[0].title} {SCENES[0].detail}</p>
-                    {scene === 0 && <Actions onWatch={() => ref.current?.watch()} />}
+                    <Actions onWatch={() => ref.current?.watch()} />
                 </div>
                 {SCENES.slice(1).map((s, i) => (
-                    <div className="lp-caption" key={s.title} data-on={scene === i + 1}>
+                    <div className="lp-caption" key={s.title} data-on={scene === i + 1} inert={scene !== i + 1}>
                         <h2>{s.title}</h2>
                         <p>{s.detail}</p>
-                        {i + 1 === LAST && scene === LAST && <Actions onWatch={() => ref.current?.watch()} />}
+                        {i + 1 === LAST && <Actions onWatch={() => ref.current?.watch()} />}
                     </div>
                 ))}
+                <p className="lp-film-announce" aria-live="polite">{scene > 0 ? `${SCENES[scene].title} ${SCENES[scene].detail}` : ''}</p>
                 {!ready && <p className="lp-film-loading" role="status">Building the city…</p>}
                 <button type="button" className="lp-film-sound" aria-pressed={soundOn}
                     onClick={async () => {
