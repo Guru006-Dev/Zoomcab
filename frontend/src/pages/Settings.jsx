@@ -91,8 +91,8 @@ export default function Settings() {
                         cursor: 'pointer', fontFamily: 'var(--font)', fontWeight: 600, fontSize: 14, color: 'var(--danger)',
                         transition: 'all 0.2s',
                     }}
-                    onMouseEnter={e => e.currentTarget.style.background = '#FEE2E2'}
-                    onMouseLeave={e => e.currentTarget.style.background = '#FEF2F2'}
+                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(248,113,113,0.28)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'rgba(248,113,113,0.16)'}
                 >
                     <LogOut size={16} />
                     Sign Out of ZoomCab

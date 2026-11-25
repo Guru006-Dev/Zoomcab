@@ -3,18 +3,17 @@ import { requestRide, socket, joinRealtime } from '../api';
 import { MapContainer, Marker, Popup, useMap, Polyline } from 'react-leaflet';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, NavigationArrow as Navigation, Car, Shield, CaretRight as ChevronRight, MagnifyingGlass as Search, Wallet, ClockCounterClockwise as History, Gear as Settings, UserPlus, Phone, ChatCircle as MessageCircle, X, Crosshair as LocateFixed, PencilSimpleLine as Edit3, Medal as Award, TrendUp as TrendingUp, FacebookLogo as Facebook, TwitterLogo as Twitter, InstagramLogo as Instagram, GithubLogo as Github, House as HomeIcon, Wind, Sparkle as Sparkles, Chat as MessageSquare } from '@phosphor-icons/react';
+import { MapPin, NavigationArrow as Navigation, Car, Shield, CaretRight as ChevronRight, MagnifyingGlass as Search, Wallet, ClockCounterClockwise as History, Gear as Settings, UserPlus, Phone, ChatCircle as MessageCircle, X, Crosshair as LocateFixed, PencilSimpleLine as Edit3, Medal as Award, TrendUp as TrendingUp, House as HomeIcon, Wind, Sparkle as Sparkles, Chat as MessageSquare } from '@phosphor-icons/react';
 import L from 'leaflet';
 import SafetyModal from '../components/SafetyModal';
 import InAppChat from '../components/InAppChat';
 import 'leaflet/dist/leaflet.css';
 import useSavedPlaces from '../hooks/useSavedPlaces';
-import ZoomcabLogo from '../assets/ChatGPT Image Feb 21, 2026, 09_27_37 PM.png';
+import Brand from '../components/Brand';
 import autoImage from '../assets/most-popular-transport-india-auto-600nw-2368746743-Photoroom.png';
 import evImage from '../assets/Wuling-Mini-EV-Gear-Photoroom.png';
 import sedanImage from '../assets/MG-Hector(1)-Photoroom.png';
 import suvImage from '../assets/bmw-m5-Photoroom.png';
-import { SocialTooltip } from '../components/ui/social-media';
 
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
@@ -245,19 +244,7 @@ export default function Home() {
             >
                 {/* Brand */}
                 <div data-side-extra style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 4 }}>
-                    <img
-                        src={ZoomcabLogo}
-                        alt="ZoomCab Logo"
-                        style={{
-                            width: 130,
-                            objectFit: 'contain',
-                            background: 'var(--primary)',
-                            padding: '6px 10px',
-                            borderRadius: 14,
-                            margin: '0 auto',
-                            boxShadow: '0 4px 12px rgba(91,79,232,0.15)'
-                        }}
-                    />
+                    <Brand />
                 </div>
 
                 {/* Avatar */}
@@ -344,18 +331,6 @@ export default function Home() {
                     Sign out →
                 </button>
 
-                {/* Social Media Component Integration */}
-                <div data-side-extra style={{ marginTop: 16, display: 'flex', justifyContent: 'center' }}>
-                    <SocialTooltip
-                        items={[
-                            { href: "#", ariaLabel: "Facebook", tooltip: "Facebook", color: "#1877F2", icon: Facebook },
-                            { href: "#", ariaLabel: "Twitter", tooltip: "Twitter", color: "#1DA1F2", icon: Twitter },
-                            { href: "#", ariaLabel: "Instagram", tooltip: "Instagram", color: "#E4405F", icon: Instagram },
-                            { href: "#", ariaLabel: "Github", tooltip: "Github", color: "#333333", icon: Github },
-                        ]}
-                        className="gap-2"
-                    />
-                </div>
             </motion.aside>
 
             {/* ══════════════ CENTER MAP ══════════════ */}
@@ -447,14 +422,14 @@ export default function Home() {
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ duration: 0.45, ease: 'easeOut' }}
                 style={{ background: 'var(--surface)', boxShadow: '-4px 0 24px rgba(91,79,232,0.06)', width: '22rem' }}
-                className="app-panel shrink-0 flex flex-col z-10 overflow-y-auto border-l border-[#EDEEF5]"
+                className="app-panel shrink-0 flex flex-col z-10 overflow-y-auto border-l border-[#313131]"
             >
                 {/* ── Active ride header ── */}
                 <AnimatePresence>
                     {isRideActive && (
                         <motion.div
                             initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
-                            className="overflow-hidden border-b border-[#F0F0F8]"
+                            className="overflow-hidden border-b border-[#313131]"
                         >
                             <div className="p-4">
                                 <div className="flex justify-between items-center mb-3">
@@ -584,7 +559,7 @@ export default function Home() {
                                         <button
                                             key={i}
                                             onClick={() => handleSelectSuggestion(s)}
-                                            className="w-full text-left px-4 py-3 flex items-start gap-3 transition-colors hover:bg-[#F8F7FF]"
+                                            className="w-full text-left px-4 py-3 flex items-start gap-3 transition-colors hover:bg-white/5"
                                             style={{ borderBottom: i < suggestions.length - 1 ? '1px solid var(--border)' : 'none' }}
                                         >
                                             <MapPin size={13} className="mt-0.5 shrink-0" style={{ color: 'var(--primary-text)' }} />

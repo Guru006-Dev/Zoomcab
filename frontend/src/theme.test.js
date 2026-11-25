@@ -59,3 +59,16 @@ test('sign in has no third party scene and can open on sign up', () => {
 test('the theme switch is gone', () => {
     expect(src('./pages/Settings.jsx')).not.toMatch(/Dark Mode|ThemeToggle/);
 });
+
+test('no leftover light tints', () => {
+    expect(offenders(/#(f0fdf4|fffbeb|f3f1ff|fff7ed|fef2f2|f5f3ff|f8f7ff|f3f4f6|edeef5|f0f0f8|fee2e2|dcfce7)\b/i)).toEqual([]);
+});
+
+test('no dead links and a readable brand', () => {
+    expect(offenders(/href:\s*["']#["']/)).toEqual([]);
+    expect(offenders(/ChatGPT Image/)).toEqual([]);
+});
+
+test('map marker html is well formed', () => {
+    expect(offenders(/< div|<\/div >/)).toEqual([]);
+});

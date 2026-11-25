@@ -215,18 +215,15 @@ export default function Payment() {
                             <label
                                 key={id}
                                 className={`inline-flex justify-between w-full items-center z-10 rounded-xl p-3 border transition-all cursor-pointer duration-500 relative overflow-hidden ${isChecked
-                                    ? 'border-[#5B4FE8] text-[#5B4FE8] bg-[#F8F7FF] font-semibold shadow-[0_2px_10px_rgba(91,79,232,0.1)]'
-                                    : 'border-transparent text-gray-400 hover:bg-[#F3F4F6]'
+                                    ? 'border-[#5B4FE8] text-[#8B82FF] bg-[#26233f] font-semibold shadow-[0_2px_10px_rgba(91,79,232,0.1)]'
+                                    : 'border-transparent text-gray-400 hover:bg-white/5'
                                     }`}
                                 onClick={(e) => { e.preventDefault(); setMethod(id); }}
                             >
                                 <div className="inline-flex items-center gap-3 relative z-10 w-full h-6">
-                                    <Icon size={22} className={`absolute left-0 transition-all duration-500 ${isChecked ? 'text-[#5B4FE8]' : 'text-gray-400'}`} />
+                                    <Icon size={22} className={`absolute left-0 transition-all duration-500 ${isChecked ? 'text-[#8B82FF]' : 'text-gray-400'}`} />
 
-                                    <p className={`font-semibold absolute left-9 top-0 leading-[22px] transition-all duration-500 ${isChecked
-                                        ? 'opacity-100 translate-y-0 translate-x-0'
-                                        : 'opacity-0 translate-y-[110%] translate-x-8'
-                                        }`}>
+                                    <p className="font-semibold absolute left-9 top-0 leading-[22px]">
                                         {label}
                                     </p>
                                 </div>

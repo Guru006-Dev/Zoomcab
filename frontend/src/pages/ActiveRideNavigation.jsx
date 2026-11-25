@@ -20,10 +20,10 @@ L.Icon.Default.mergeOptions({
 
 // Uber-style marker icons (blue pins)
 const uberMarkerIcon = new L.divIcon({
-    html: `< div style = "position: relative;" >
+    html: `<div style="position: relative;">
         <div style="width: 40px; height: 50px; background: #1E88E5; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); box-shadow: 0 4px 8px rgba(0,0,0,0.3);"></div>
         <div style="position: absolute; top: 10px; left: 10px; width: 20px; height: 20px; background: var(--surface); border-radius: 50%; transform: rotate(45deg);"></div>
-    </div > `,
+    </div>`,
     iconSize: [40, 50],
     iconAnchor: [20, 50],
     className: 'uber-marker',

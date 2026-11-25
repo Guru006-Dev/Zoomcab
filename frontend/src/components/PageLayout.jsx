@@ -1,8 +1,7 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, House as Home, Wallet, ClockCounterClockwise as History, Gear as Settings, UserPlus, Medal as Award, Shield, TrendUp as TrendingUp, CaretRight as ChevronRight, Car, FacebookLogo as Facebook, TwitterLogo as Twitter, InstagramLogo as Instagram, GithubLogo as Github, MapPin, ChartBar as BarChart3, Coffee, Receipt, Wind, Sparkle as Sparkles } from '@phosphor-icons/react';
-import ZoomcabLogo from '../assets/ChatGPT Image Feb 21, 2026, 09_27_37 PM.png';
-import { SocialTooltip } from './ui/social-media';
+import { ArrowLeft, House as Home, Wallet, ClockCounterClockwise as History, Gear as Settings, UserPlus, Medal as Award, Shield, TrendUp as TrendingUp, CaretRight as ChevronRight, Car, MapPin, ChartBar as BarChart3, Coffee, Receipt, Wind, Sparkle as Sparkles } from '@phosphor-icons/react';
+import Brand from './Brand';
 
 const riderNavItems = [
     { label: 'Home', icon: Home, path: '/home' },
@@ -69,19 +68,7 @@ export default function PageLayout({ title, subtitle, children, headerRight, noP
             >
                 {/* Brand */}
                 <div data-side-extra style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 4, position: 'relative' }}>
-                    <img
-                        src={ZoomcabLogo}
-                        alt="ZoomCab Logo"
-                        style={{
-                            width: 130,
-                            objectFit: 'contain',
-                            background: 'var(--primary)',
-                            padding: '6px 10px',
-                            borderRadius: 14,
-                            margin: '0 auto',
-                            boxShadow: '0 4px 12px rgba(91,79,232,0.15)'
-                        }}
-                    />
+                    <Brand />
                     {displayRole === 'driver' && (
                         <span
                             className="badge badge-primary"
@@ -174,18 +161,6 @@ export default function PageLayout({ title, subtitle, children, headerRight, noP
                     Sign out →
                 </button>
 
-                {/* Social Media Component Integration */}
-                <div data-side-extra style={{ marginTop: 16, display: 'flex', justifyContent: 'center' }}>
-                    <SocialTooltip
-                        items={[
-                            { href: "#", ariaLabel: "Facebook", tooltip: "Facebook", color: "#1877F2", icon: Facebook },
-                            { href: "#", ariaLabel: "Twitter", tooltip: "Twitter", color: "#1DA1F2", icon: Twitter },
-                            { href: "#", ariaLabel: "Instagram", tooltip: "Instagram", color: "#E4405F", icon: Instagram },
-                            { href: "#", ariaLabel: "Github", tooltip: "Github", color: "#333333", icon: Github },
-                        ]}
-                        className="gap-2"
-                    />
-                </div>
             </motion.aside>
 
             {/* ── Main ── */}

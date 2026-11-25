@@ -50,10 +50,10 @@ export default function DriverStats() {
                 {/* Metrics grid */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                     {[
-                        { icon: CheckCircle, label: 'Acceptance Rate', value: `${stats.acceptanceRate}%`, color: 'var(--success)', bg: '#F0FDF4' },
-                        { icon: XCircle, label: 'Cancellation Rate', value: `${stats.cancellationRate}%`, color: 'var(--danger)', bg: '#FEF2F2' },
+                        { icon: CheckCircle, label: 'Acceptance Rate', value: `${stats.acceptanceRate}%`, color: 'var(--success)', bg: 'rgba(61,220,132,0.14)' },
+                        { icon: XCircle, label: 'Cancellation Rate', value: `${stats.cancellationRate}%`, color: 'var(--danger)', bg: 'rgba(248,113,113,0.16)' },
                         { icon: MapPin, label: 'KM Driven', value: stats.totalDistance, color: 'var(--primary)', bg: 'var(--surface2)' },
-                        { icon: Award, label: 'On-Time Pickup', value: `${stats.onTimePercent}%`, color: 'var(--primary-text)', bg: '#F5F3FF' },
+                        { icon: Award, label: 'On-Time Pickup', value: `${stats.onTimePercent}%`, color: 'var(--primary-text)', bg: 'rgba(139,130,255,0.16)' },
                     ].map(({ icon: Icon, label, value, color, bg }) => (
                         <div key={label} className="card" style={{ padding: 20, textAlign: 'center' }}>
                             <div style={{ width: 36, height: 36, borderRadius: 10, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px' }}>

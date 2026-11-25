@@ -2,10 +2,9 @@ import { useState, useEffect } from 'react';
 import { socket, updateLocation, completeRide, joinRealtime, getDriverRating } from '../api';
 import { MapContainer, Marker, Popup, Polyline } from 'react-leaflet';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Power, TrendUp as TrendingUp, ChartBar as BarChart3, Coffee, Receipt, MapPin, Star, CaretRight as ChevronRight, FacebookLogo as Facebook, TwitterLogo as Twitter, InstagramLogo as Instagram, GithubLogo as Github } from '@phosphor-icons/react';
+import { Power, TrendUp as TrendingUp, ChartBar as BarChart3, Coffee, Receipt, MapPin, Star, CaretRight as ChevronRight } from '@phosphor-icons/react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { SocialTooltip } from '../components/ui/social-media';
-import ZoomcabLogo from '../assets/ChatGPT Image Feb 21, 2026, 09_27_37 PM.png';
+import Brand from '../components/Brand';
 import L from 'leaflet';
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
@@ -161,19 +160,7 @@ const DriverDashboard = () => {
             >
                 {/* Brand */}
                 <div data-side-extra style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 4, position: 'relative' }}>
-                    <img
-                        src={ZoomcabLogo}
-                        alt="ZoomCab Logo"
-                        style={{
-                            width: 130,
-                            objectFit: 'contain',
-                            background: 'var(--primary)',
-                            padding: '6px 10px',
-                            borderRadius: 14,
-                            margin: '0 auto',
-                            boxShadow: '0 4px 12px rgba(91,79,232,0.15)'
-                        }}
-                    />
+                    <Brand />
                     <span
                         className="badge badge-primary"
                         style={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)', scale: 0.85, transformOrigin: 'right center' }}
@@ -271,18 +258,6 @@ const DriverDashboard = () => {
                     Sign out →
                 </button>
 
-                {/* Social Media Footer */}
-                <div data-side-extra style={{ marginTop: 8, display: 'flex', justifyContent: 'center' }}>
-                    <SocialTooltip
-                        items={[
-                            { href: "#", ariaLabel: "Facebook", tooltip: "Facebook", color: "#1877F2", icon: Facebook },
-                            { href: "#", ariaLabel: "Twitter", tooltip: "Twitter", color: "#1DA1F2", icon: Twitter },
-                            { href: "#", ariaLabel: "Instagram", tooltip: "Instagram", color: "#E4405F", icon: Instagram },
-                            { href: "#", ariaLabel: "Github", tooltip: "Github", color: "#333333", icon: Github },
-                        ]}
-                        className="gap-2"
-                    />
-                </div>
 
             </motion.aside>
 
@@ -405,15 +380,15 @@ const DriverDashboard = () => {
             >
                 <p className="section-label" style={{ marginBottom: 4 }}>Summary</p>
 
-                <Stat label="Earnings" value="View" sub="Sample data for now" color="#16A34A" colorBg="#F0FDF4" icon={TrendingUp} onClick={() => navigate('/driver-earnings')} />
-                <Stat label="Rating" value={ratingText} sub={rating?.totalReviews ? `${rating.totalReviews} review${rating.totalReviews === 1 ? '' : 's'}` : 'No reviews yet'} color="#D97706" colorBg="#FFFBEB" icon={BarChart3} onClick={() => navigate('/driver-stats')} />
+                <Stat label="Earnings" value="View" sub="Sample data for now" color="#16A34A" colorBg="rgba(61,220,132,0.14)" icon={TrendingUp} onClick={() => navigate('/driver-earnings')} />
+                <Stat label="Rating" value={ratingText} sub={rating?.totalReviews ? `${rating.totalReviews} review${rating.totalReviews === 1 ? '' : 's'}` : 'No reviews yet'} color="#D97706" colorBg="rgba(251,191,36,0.14)" icon={BarChart3} onClick={() => navigate('/driver-stats')} />
 
                 <div className="divider" style={{ margin: '4px 0' }} />
                 <p className="section-label">Quick Actions</p>
 
                 {[
-                    { label: 'Break Scheduler', sub: 'Plan your breaks', icon: Coffee, path: '/break-scheduler', color: 'var(--primary-text)', colorBg: '#F3F1FF' },
-                    { label: 'Expense Tracker', sub: 'Log fuel & costs', icon: Receipt, path: '/expense-tracker', color: 'var(--warning)', colorBg: '#FFF7ED' },
+                    { label: 'Break Scheduler', sub: 'Plan your breaks', icon: Coffee, path: '/break-scheduler', color: 'var(--primary-text)', colorBg: 'rgba(139,130,255,0.16)' },
+                    { label: 'Expense Tracker', sub: 'Log fuel & costs', icon: Receipt, path: '/expense-tracker', color: 'var(--warning)', colorBg: 'rgba(251,146,60,0.14)' },
                 ].map(({ label, sub, icon: Icon, path, color, colorBg }) => (
                     <button
                         key={path}
@@ -442,7 +417,7 @@ const DriverDashboard = () => {
                     <p>Driver ID: {driverId || '—'}</p>
                 </div>
             </motion.aside>
-        </div >
+        </div>
     );
 };
 

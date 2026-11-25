@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, EyeSlash as EyeOff } from '@phosphor-icons/react';
 import { login, register, joinRealtime } from '../api';
 import CityNight from '../assets/city-night.webp';
-import ZoomcabLogo from '../assets/ChatGPT Image Feb 21, 2026, 09_27_37 PM.png';
+import Brand from '../components/Brand';
 
 export default function Login() {
     const navigate = useNavigate();
@@ -97,14 +97,7 @@ export default function Login() {
                     position: 'absolute', top: 28, left: 28, zIndex: 3,
                     display: 'flex', alignItems: 'center',
                 }}>
-                    <img
-                        src={ZoomcabLogo}
-                        alt="ZoomCab Logo"
-                        style={{
-                            width: 140,
-                            objectFit: 'contain',
-                        }}
-                    />
+                    <Brand />
                 </div>
 
                 {/* ── Layer 3: Tagline bottom-left ── */}
@@ -137,15 +130,7 @@ export default function Login() {
 
                 {/* Brand (shown only when the city panel is hidden, i.e. mobile) */}
                 <div className="brand-mobile" style={{ textAlign: 'center', marginBottom: 36 }}>
-                    <img
-                        src={ZoomcabLogo}
-                        alt="ZoomCab Logo"
-                        style={{
-                            width: 160,
-                            objectFit: 'contain',
-                            margin: '0 auto 10px',
-                        }}
-                    />
+                    <Brand />
                     <p style={{ fontSize: 14, color: 'var(--text-4)' }}>One ride finds one driver</p>
                 </div>
 
