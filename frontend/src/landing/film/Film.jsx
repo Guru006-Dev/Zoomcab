@@ -73,6 +73,7 @@ const Film = forwardRef(function Film(_, ref) {
 
         const tick = (now) => {
             frame = requestAnimationFrame(tick);
+            if (!track.current) return; // hidden while another page loads
             const box = track.current.getBoundingClientRect();
             const dt = Math.min((now - last) / 1000, 0.1);
             last = now;
@@ -138,6 +139,7 @@ const Film = forwardRef(function Film(_, ref) {
                     <div className="lp-caption" key={s.title} data-on={scene === i + 1}>
                         <h2>{s.title}</h2>
                         <p>{s.detail}</p>
+                        {i + 1 === LAST && scene === LAST && <Actions onWatch={() => ref.current?.watch()} />}
                     </div>
                 ))}
                 {!ready && <p className="lp-film-loading" role="status">Building the city…</p>}
