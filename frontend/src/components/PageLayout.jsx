@@ -11,7 +11,7 @@ import { SocialTooltip } from './ui/social-media';
 
 const riderNavItems = [
     { label: 'Home', icon: Home, path: '/home' },
-    { label: 'Wallet', icon: Wallet, path: '/wallet', badge: '₹240' },
+    { label: 'Wallet', icon: Wallet, path: '/wallet' },
     { label: 'My Rides', icon: History, path: '/rides' },
     { label: 'Payment', icon: TrendingUp, path: '/payment' },
     { label: 'Rewards', icon: Award, path: '/rewards' },
@@ -37,7 +37,7 @@ const driverNavItems = [
  *   headerRight  – optional JSX shown in top-right of header
  *   noPad        – skip inner padding (for full-bleed content)
  */
-export default function PageLayout({ title, subtitle, children, headerRight, noPad = false }) {
+export default function PageLayout({ title, subtitle, children, headerRight, noPad = false, sample = false }) {
     const navigate = useNavigate();
     const { pathname } = useLocation();
     const user = JSON.parse(localStorage.getItem('user') || '{}');
@@ -51,10 +51,10 @@ export default function PageLayout({ title, subtitle, children, headerRight, noP
     const displayRole = isDriverPage ? 'driver' : 'rider';
 
     return (
-        <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg)', fontFamily: 'var(--font)' }}>
+        <div className="app-shell" style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg)', fontFamily: 'var(--font)' }}>
 
             {/* ── Sidebar ── */}
-            <motion.aside
+            <motion.aside className="app-side"
                 initial={{ x: -20, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ duration: 0.35 }}
@@ -73,7 +73,7 @@ export default function PageLayout({ title, subtitle, children, headerRight, noP
                 }}
             >
                 {/* Brand */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 4, position: 'relative' }}>
+                <div data-side-extra style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 4, position: 'relative' }}>
                     <img
                         src={ZoomcabLogo}
                         alt="ZoomCab Logo"
@@ -96,7 +96,7 @@ export default function PageLayout({ title, subtitle, children, headerRight, noP
                 </div>
 
                 {/* Avatar */}
-                <div style={{
+                <div data-side-extra style={{
                     borderRadius: 16, padding: 16, textAlign: 'center',
                     background: 'linear-gradient(135deg,#F3F1FF,#EBF0FF)',
                     display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10,
@@ -118,7 +118,7 @@ export default function PageLayout({ title, subtitle, children, headerRight, noP
                     </div>
                     <div>
                         <p style={{ fontWeight: 700, fontSize: 13, color: 'var(--text-1)' }}>{username}</p>
-                        <p style={{ fontSize: 11, color: 'var(--text-4)', marginTop: 2 }}>{displayRole === 'driver' ? 'Active Driver' : 'Premium Rider'}</p>
+                        <p style={{ fontSize: 11, color: 'var(--text-4)', marginTop: 2 }}>{displayRole === 'driver' ? 'Driver' : 'Rider'}</p>
                     </div>
                 </div>
 
@@ -180,7 +180,7 @@ export default function PageLayout({ title, subtitle, children, headerRight, noP
                 </button>
 
                 {/* Social Media Component Integration */}
-                <div style={{ marginTop: 16, display: 'flex', justifyContent: 'center' }}>
+                <div data-side-extra style={{ marginTop: 16, display: 'flex', justifyContent: 'center' }}>
                     <SocialTooltip
                         items={[
                             { href: "#", ariaLabel: "Facebook", tooltip: "Facebook", color: "#1877F2", icon: Facebook },
@@ -194,10 +194,10 @@ export default function PageLayout({ title, subtitle, children, headerRight, noP
             </motion.aside>
 
             {/* ── Main ── */}
-            <main style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+            <main className="app-main" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
 
                 {/* Top bar */}
-                <div style={{
+                <div className="app-top" style={{
                     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                     padding: '20px 28px', background: 'var(--surface)',
                     borderBottom: '1px solid var(--border)',
@@ -222,11 +222,12 @@ export default function PageLayout({ title, subtitle, children, headerRight, noP
                             {subtitle && <p style={{ fontSize: 12, color: 'var(--text-4)', marginTop: 2 }}>{subtitle}</p>}
                         </div>
                     </div>
+                    {sample && <span className="badge badge-warning">Sample data</span>}
                     {headerRight && <div>{headerRight}</div>}
                 </div>
 
                 {/* Content */}
-                <motion.div
+                <motion.div className="app-content"
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3 }}

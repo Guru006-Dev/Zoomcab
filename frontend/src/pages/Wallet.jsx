@@ -12,7 +12,7 @@ const transactions = [
 
 export default function Wallet() {
     return (
-        <PageLayout title="Wallet" subtitle="Manage your ZoomCab balance">
+        <PageLayout sample title="Wallet" subtitle="Manage your ZoomCab balance">
             <div style={{ maxWidth: 560, display: 'flex', flexDirection: 'column', gap: 20 }}>
 
                 {/* Balance card */}

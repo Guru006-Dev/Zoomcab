@@ -366,8 +366,8 @@ export default function Login() {
                     <div style={{ marginTop: 22, padding: '12px 16px', borderRadius: 12, background: 'var(--surface2)', border: '1px solid var(--border2)', width: '100%' }}>
                         <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>Demo accounts</p>
                         <div style={{ display: 'flex', gap: 16, fontSize: 12, color: 'var(--text-3)' }}>
-                            <span>🧑‍💼 <b>rider1</b> / test123</span>
-                            <span>🚗 <b>driver1</b> / test123</span>
+                            <span>🧑‍💼 <b>Guru</b> / 123456</span>
+                            <span>🚗 <b>Driver1</b> / password</span>
                         </div>
                     </div>
                 )}

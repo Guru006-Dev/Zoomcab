@@ -5,7 +5,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     MapPin, Navigation, Car, Shield, ChevronRight, Search,
-    Wallet, History, Settings, UserPlus, Star, Phone,
+    Wallet, History, Settings, UserPlus, Phone,
     MessageCircle, X, LocateFixed, Edit3, Award, TrendingUp,
     Facebook, Twitter, Instagram, Github, Home as HomeIcon, Wind, Sparkles, MessageSquare
 } from 'lucide-react';
@@ -33,10 +33,10 @@ L.Icon.Default.mergeOptions({
 });
 
 const baseVehicles = [
-    { id: 'auto', name: 'Auto', basePrice: 25, perKm: 12, timePerKm: 3, image: autoImage, icon: <img src={autoImage} alt="Auto" style={{ width: 36, height: 36, objectFit: 'contain' }} />, nearby: 4 },
-    { id: 'ev', name: 'EV', basePrice: 40, perKm: 15, timePerKm: 2.5, image: evImage, icon: <img src={evImage} alt="EV" style={{ width: 44, height: 36, objectFit: 'contain' }} />, nearby: 3 },
-    { id: 'sedan', name: 'Sedan', basePrice: 50, perKm: 18, timePerKm: 2.2, image: sedanImage, icon: <img src={sedanImage} alt="Sedan" style={{ width: 48, height: 36, objectFit: 'contain' }} />, nearby: 2 },
-    { id: 'suv', name: 'SUV', basePrice: 80, perKm: 25, timePerKm: 2.5, image: suvImage, icon: <img src={suvImage} alt="SUV" style={{ width: 48, height: 36, objectFit: 'contain' }} />, nearby: 1 },
+    { id: 'auto', name: 'Auto', basePrice: 25, perKm: 12, timePerKm: 3, image: autoImage, icon: <img src={autoImage} alt="Auto" style={{ width: 36, height: 36, objectFit: 'contain' }} /> },
+    { id: 'ev', name: 'EV', basePrice: 40, perKm: 15, timePerKm: 2.5, image: evImage, icon: <img src={evImage} alt="EV" style={{ width: 44, height: 36, objectFit: 'contain' }} /> },
+    { id: 'sedan', name: 'Sedan', basePrice: 50, perKm: 18, timePerKm: 2.2, image: sedanImage, icon: <img src={sedanImage} alt="Sedan" style={{ width: 48, height: 36, objectFit: 'contain' }} /> },
+    { id: 'suv', name: 'SUV', basePrice: 80, perKm: 25, timePerKm: 2.5, image: suvImage, icon: <img src={suvImage} alt="SUV" style={{ width: 48, height: 36, objectFit: 'contain' }} /> },
 ];
 
 const MapUpdater = ({ center, showRoute, routePath }) => {
@@ -210,7 +210,7 @@ export default function Home() {
 
     const navItems = [
         { label: 'Home', icon: HomeIcon, path: '/home' },
-        { label: 'Wallet', icon: Wallet, path: '/wallet', badge: '₹240' },
+        { label: 'Wallet', icon: Wallet, path: '/wallet' },
         { label: 'My Rides', icon: History, path: '/rides' },
         { label: 'Payment', icon: TrendingUp, path: '/payment' },
         { label: 'Rewards', icon: Award, path: '/rewards' },
@@ -222,12 +222,12 @@ export default function Home() {
     /* ─────────────────────────────────────────────────────────── */
     return (
         <div
-            className="flex h-screen w-full overflow-hidden"
+            className="app-shell flex h-screen w-full overflow-hidden"
             style={{ background: '#EDEEF5', fontFamily: "'Inter', 'Segoe UI', sans-serif" }}
         >
 
             {/* ══════════════ LEFT SIDEBAR ══════════════ */}
-            <motion.aside
+            <motion.aside className="app-side"
                 initial={{ x: -20, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ duration: 0.35 }}
@@ -246,7 +246,7 @@ export default function Home() {
                 }}
             >
                 {/* Brand */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 4 }}>
+                <div data-side-extra style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 4 }}>
                     <img
                         src={ZoomcabLogo}
                         alt="ZoomCab Logo"
@@ -263,7 +263,7 @@ export default function Home() {
                 </div>
 
                 {/* Avatar */}
-                <div style={{
+                <div data-side-extra style={{
                     borderRadius: 16, padding: 16, textAlign: 'center',
                     background: 'linear-gradient(135deg,#F3F1FF,#EBF0FF)',
                     display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10,
@@ -285,7 +285,7 @@ export default function Home() {
                     </div>
                     <div>
                         <p style={{ fontWeight: 700, fontSize: 13, color: 'var(--text-1)' }}>{username}</p>
-                        <p style={{ fontSize: 11, color: 'var(--text-4)', marginTop: 2 }}>Premium Rider</p>
+                        <p style={{ fontSize: 11, color: 'var(--text-4)', marginTop: 2 }}>Rider</p>
                     </div>
                 </div>
 
@@ -347,7 +347,7 @@ export default function Home() {
                 </button>
 
                 {/* Social Media Component Integration */}
-                <div style={{ marginTop: 16, display: 'flex', justifyContent: 'center' }}>
+                <div data-side-extra style={{ marginTop: 16, display: 'flex', justifyContent: 'center' }}>
                     <SocialTooltip
                         items={[
                             { href: "#", ariaLabel: "Facebook", tooltip: "Facebook", color: "#1877F2", icon: Facebook },
@@ -361,7 +361,7 @@ export default function Home() {
             </motion.aside>
 
             {/* ══════════════ CENTER MAP ══════════════ */}
-            <div className="flex-1 relative">
+            <div className="app-map flex-1 relative">
                 <MapContainer
                     center={position} zoom={14} zoomControl={false}
                     style={{ height: '100%', width: '100%' }}
@@ -457,7 +457,7 @@ export default function Home() {
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ duration: 0.45, ease: 'easeOut' }}
                 style={{ background: '#fff', boxShadow: '-4px 0 24px rgba(91,79,232,0.06)', width: '22rem' }}
-                className="shrink-0 flex flex-col z-10 overflow-y-auto border-l border-[#EDEEF5]"
+                className="app-panel shrink-0 flex flex-col z-10 overflow-y-auto border-l border-[#EDEEF5]"
             >
                 {/* ── Active ride header ── */}
                 <AnimatePresence>
@@ -469,7 +469,6 @@ export default function Home() {
                             <div className="p-4">
                                 <div className="flex justify-between items-center mb-3">
                                     <span className="font-bold text-sm" style={{ color: '#1A1D2E' }}>Arriving</span>
-                                    <span className="font-bold text-sm" style={{ color: '#5B4FE8' }}>5 min</span>
                                 </div>
                                 <div
                                     className="flex items-center gap-3 p-3 rounded-xl"
@@ -482,12 +481,7 @@ export default function Home() {
                                         D
                                     </div>
                                     <div className="flex-1">
-                                        <p className="text-sm font-semibold" style={{ color: '#1A1D2E' }}>Driver1</p>
-                                        <p className="text-xs text-gray-400">Maruti Swift · KA 03 AB 4521</p>
-                                    </div>
-                                    <div className="flex items-center gap-1">
-                                        <Star size={12} style={{ color: '#FACC15', fill: '#FACC15' }} />
-                                        <span className="text-xs font-bold" style={{ color: '#1A1D2E' }}>4.8</span>
+                                        <p className="text-sm font-semibold" style={{ color: '#1A1D2E' }}>Your driver</p>
                                     </div>
                                 </div>
                                 <div className="flex gap-2 mt-3">
@@ -698,7 +692,6 @@ export default function Home() {
                                         )}
                                         <span style={{ fontSize: 28, filter: !isSelected && 'grayscale(0.4) opacity(0.8)' }}>{v.icon}</span>
                                         <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)' }}>{v.name}</span>
-                                        <span style={{ fontSize: 11, color: 'var(--text-4)' }}>{v.nearby} nearby</span>
                                         <span style={{ fontSize: 14, fontWeight: 800, color: isSelected ? 'var(--primary)' : 'var(--text-2)' }}>
                                             {v.price ? `₹${v.price}` : '—'}
                                         </span>

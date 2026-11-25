@@ -16,7 +16,7 @@ const maxR = 5.0, minR = 4.5;
 
 export default function DriverStats() {
     return (
-        <PageLayout title="Driver Stats" subtitle="Your performance overview">
+        <PageLayout sample title="Driver Stats" subtitle="Your performance overview">
             <div style={{ maxWidth: 700, display: 'flex', flexDirection: 'column', gap: 16 }}>
 
                 {/* Rating hero */}
