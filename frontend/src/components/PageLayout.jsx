@@ -117,7 +117,7 @@ export default function PageLayout({ title, subtitle, children, headerRight, noP
                                     padding: '9px 12px', borderRadius: 12, border: 'none',
                                     cursor: 'pointer', width: '100%', textAlign: 'left',
                                     background: active ? (special ? 'var(--surface2)' : 'var(--surface2)') : 'transparent',
-                                    color: active ? 'var(--primary)' : 'var(--text-3)',
+                                    color: active ? 'var(--primary-text)' : 'var(--text-3)',
                                     fontFamily: 'var(--font)', fontWeight: special ? 700 : 600, fontSize: 13,
                                     transition: 'all 0.15s',
                                     outline: active ? (special ? '1.5px solid #8B7CF6' : '1.5px solid var(--border2)') : 'none',
@@ -125,7 +125,7 @@ export default function PageLayout({ title, subtitle, children, headerRight, noP
                                 onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'var(--surface2)'; }}
                                 onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent'; }}
                             >
-                                <Icon size={15} style={{ color: special ? 'var(--primary-text)' : (active ? 'var(--primary)' : 'var(--text-4)'), flexShrink: 0 }} />
+                                <Icon size={15} style={{ color: special ? 'var(--primary-text)' : (active ? 'var(--primary-text)' : 'var(--text-4)'), flexShrink: 0 }} />
                                 <span style={{ flex: 1, color: special ? 'var(--primary-text)' : 'inherit' }}>{label}</span>
                                 {badge && <span className="badge badge-orange">{badge}</span>}
                                 {!special && <ChevronRight size={13} style={{ color: 'var(--border)', flexShrink: 0 }} />}

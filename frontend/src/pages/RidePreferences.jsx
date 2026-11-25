@@ -36,7 +36,7 @@ const RidePreferences = () => {
                 >
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
                         <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--surface2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <Music size={18} style={{ color: 'var(--primary)' }} />
+                            <Music size={18} style={{ color: 'var(--primary-text)' }} />
                         </div>
                         <h3 style={{ fontWeight: 600, fontSize: 16, color: 'var(--text-1)' }}>Music</h3>
                     </div>
@@ -67,7 +67,7 @@ const RidePreferences = () => {
                 >
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
                         <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--surface2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <Wind size={18} style={{ color: 'var(--primary)' }} />
+                            <Wind size={18} style={{ color: 'var(--primary-text)' }} />
                         </div>
                         <h3 style={{ fontWeight: 600, fontSize: 16, color: 'var(--text-1)' }}>Air Conditioning</h3>
                     </div>
@@ -98,7 +98,7 @@ const RidePreferences = () => {
                 >
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
                         <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--surface2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <MessageCircle size={18} style={{ color: 'var(--primary)' }} />
+                            <MessageCircle size={18} style={{ color: 'var(--primary-text)' }} />
                         </div>
                         <h3 style={{ fontWeight: 600, fontSize: 16, color: 'var(--text-1)' }}>Conversation</h3>
                     </div>

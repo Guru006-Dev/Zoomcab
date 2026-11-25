@@ -81,3 +81,19 @@ test('icon names are never printed as words', () => {
     expect(src('./components/Badges.jsx')).not.toMatch(/^\s*badge\.icon\s*$/m);
     expect(src('./components/Glyph.jsx')).toContain('isValidElement');
 });
+
+test('payment makes no invented claims and still tells the driver', () => {
+    const payment = src('./pages/Payment.jsx');
+    expect(payment).not.toMatch(/safety record|256-bit|TestimonialCarousel/);
+    expect(payment).toContain("socket.emit('payment_completed_broadcast', { rideId: state.rideId, driverId: state.driverId })");
+});
+
+test('violet text uses the readable shade', () => {
+    expect(offenders(/(?<![-\w])color:[^,;\n}]*(var\(--primary\)|'#5b4fe8')/i)).toEqual([]);
+});
+
+test('places saved before the restyle keep their icons', () => {
+    const glyph = src('./components/Glyph.jsx');
+    expect(glyph).toContain("'\\u{1F3E0}': 'home'");
+    expect(glyph).toContain("'\\u{1F4BC}': 'work'");
+});

@@ -32,7 +32,7 @@ export default function Rewards() {
                 {/* Available rewards */}
                 <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                        <Gift size={15} style={{ color: 'var(--primary)' }} />
+                        <Gift size={15} style={{ color: 'var(--primary-text)' }} />
                         <p className="section-label">Available Rewards</p>
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
@@ -46,8 +46,8 @@ export default function Rewards() {
                                 <div style={{ fontSize: 36, marginBottom: 10 }}><Glyph name={reward.icon} /></div>
                                 <h3 style={{ fontWeight: 600, fontSize: 13, color: 'var(--text-1)', marginBottom: 8 }}>{reward.name}</h3>
                                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, marginBottom: 14 }}>
-                                    <Award size={13} style={{ color: 'var(--primary)' }} />
-                                    <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--primary)' }}>{reward.points} pts</span>
+                                    <Award size={13} style={{ color: 'var(--primary-text)' }} />
+                                    <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--primary-text)' }}>{reward.points} pts</span>
                                 </div>
                                 <button
                                     onClick={() => handleRedeem(reward.id)}
@@ -65,7 +65,7 @@ export default function Rewards() {
                 {/* History */}
                 <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                        <TrendingUp size={15} style={{ color: 'var(--primary)' }} />
+                        <TrendingUp size={15} style={{ color: 'var(--primary-text)' }} />
                         <p className="section-label">Points History</p>
                     </div>
                     <div className="card" style={{ padding: 0, overflow: 'hidden' }}>

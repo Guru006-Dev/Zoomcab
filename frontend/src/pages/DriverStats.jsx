@@ -34,7 +34,7 @@ export default function DriverStats() {
                 {/* Trend chart */}
                 <div className="card" style={{ padding: 20 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-                        <TrendingUp size={14} style={{ color: 'var(--primary)' }} />
+                        <TrendingUp size={14} style={{ color: 'var(--primary-text)' }} />
                         <p style={{ fontWeight: 600, fontSize: 14, color: 'var(--text-1)' }}>Rating Trend (30 Days)</p>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4, height: 80 }}>
@@ -52,7 +52,7 @@ export default function DriverStats() {
                     {[
                         { icon: CheckCircle, label: 'Acceptance Rate', value: `${stats.acceptanceRate}%`, color: 'var(--success)', bg: 'rgba(61,220,132,0.14)' },
                         { icon: XCircle, label: 'Cancellation Rate', value: `${stats.cancellationRate}%`, color: 'var(--danger)', bg: 'rgba(248,113,113,0.16)' },
-                        { icon: MapPin, label: 'KM Driven', value: stats.totalDistance, color: 'var(--primary)', bg: 'var(--surface2)' },
+                        { icon: MapPin, label: 'KM Driven', value: stats.totalDistance, color: 'var(--primary-text)', bg: 'var(--surface2)' },
                         { icon: Award, label: 'On-Time Pickup', value: `${stats.onTimePercent}%`, color: 'var(--primary-text)', bg: 'rgba(139,130,255,0.16)' },
                     ].map(({ icon: Icon, label, value, color, bg }) => (
                         <div key={label} className="card" style={{ padding: 20, textAlign: 'center' }}>

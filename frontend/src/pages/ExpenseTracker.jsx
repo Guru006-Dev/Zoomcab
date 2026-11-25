@@ -49,7 +49,7 @@ export default function ExpenseTracker() {
                                     <button key={t} onClick={() => setExpType(t)}
                                         style={{
                                             flex: 1, padding: '9px 0', borderRadius: 10, border: `1.5px solid ${expType === t ? 'var(--primary)' : 'var(--border)'}`,
-                                            background: expType === t ? 'var(--surface2)' : 'var(--surface3)', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: expType === t ? 'var(--primary)' : 'var(--text-3)', fontFamily: 'var(--font)', textTransform: 'capitalize'
+                                            background: expType === t ? 'var(--surface2)' : 'var(--surface3)', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: expType === t ? 'var(--primary-text)' : 'var(--text-3)', fontFamily: 'var(--font)', textTransform: 'capitalize'
                                         }}>
                                         <Glyph name={iconMap[t]} /> {t}
                                     </button>
@@ -83,7 +83,7 @@ export default function ExpenseTracker() {
                         <div className="section-label" style={{ marginTop: 4 }}>Fuel</div>
                     </div>
                     <div className="card" style={{ padding: 16, textAlign: 'center' }}>
-                        <Wrench size={18} style={{ color: 'var(--primary)', margin: '0 auto 8px' }} />
+                        <Wrench size={18} style={{ color: 'var(--primary-text)', margin: '0 auto 8px' }} />
                         <div style={{ fontWeight: 600, fontSize: 22, color: 'var(--text-1)' }}>₹{maint}</div>
                         <div className="section-label" style={{ marginTop: 4 }}>Maintenance</div>
                     </div>

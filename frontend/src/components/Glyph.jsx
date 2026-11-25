@@ -11,9 +11,12 @@ const GLYPHS = {
     wrench: Wrench,
 };
 
+// places saved before the restyle stored an emoji in the browser
+const SAVED = { '\u{1F3E0}': 'home', '\u{1F4BC}': 'work', '\u{1F4CD}': 'pin' };
+
 /** An icon chosen by name, for lists kept as data. Unknown names (older saved data) show a pin. */
 export default function Glyph({ name, size = '1em' }) {
     if (isValidElement(name)) return name; // some lists use a photo instead
-    const Icon = GLYPHS[name] ?? MapPin;
+    const Icon = GLYPHS[SAVED[name] ?? name] ?? MapPin;
     return <Icon size={size} weight="duotone" aria-hidden />;
 }

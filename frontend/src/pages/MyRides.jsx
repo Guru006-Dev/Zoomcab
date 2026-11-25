@@ -44,7 +44,7 @@ export default function MyRides() {
                                 </div>
                             </div>
                             <div style={{ textAlign: 'right' }}>
-                                <div style={{ fontWeight: 600, fontSize: 18, color: 'var(--primary)' }}>₹{ride.price}</div>
+                                <div style={{ fontWeight: 600, fontSize: 18, color: 'var(--primary-text)' }}>₹{ride.price}</div>
                                 <span className={`badge ${ride.status === 'Completed' ? 'badge-success' : 'badge-danger'}`} style={{ marginTop: 4 }}>
                                     {ride.status}
                                 </span>
@@ -80,7 +80,7 @@ export default function MyRides() {
                                     <button
                                         onClick={() => { setSelectedRide(ride); setRatingOpen(true); }}
                                         className="btn-ghost"
-                                        style={{ padding: '6px 12px', fontSize: 12, gap: 4, color: 'var(--primary)', borderColor: 'var(--border2)', background: 'var(--surface2)' }}
+                                        style={{ padding: '6px 12px', fontSize: 12, gap: 4, color: 'var(--primary-text)', borderColor: 'var(--border2)', background: 'var(--surface2)' }}
                                     >
                                         <Star size={13} /> Rate
                                     </button>

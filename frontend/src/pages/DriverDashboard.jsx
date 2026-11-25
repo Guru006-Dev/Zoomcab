@@ -201,7 +201,7 @@ const DriverDashboard = () => {
 
                 {/* Location */}
                 <div data-side-extra style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', borderRadius: 12, background: 'var(--surface3)', border: '1px solid var(--border)' }}>
-                    <MapPin size={14} style={{ color: 'var(--primary)', flexShrink: 0 }} />
+                    <MapPin size={14} style={{ color: 'var(--primary-text)', flexShrink: 0 }} />
                     <div>
                         <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-2)' }}>Current Location</p>
                         <p style={{ fontSize: 10, color: 'var(--text-4)' }}>Gandhipuram, Coimbatore</p>
@@ -228,7 +228,7 @@ const DriverDashboard = () => {
                                     padding: '9px 12px', borderRadius: 12, border: 'none',
                                     cursor: 'pointer', width: '100%', textAlign: 'left',
                                     background: active ? 'var(--surface2)' : 'transparent',
-                                    color: active ? 'var(--primary)' : 'var(--text-3)',
+                                    color: active ? 'var(--primary-text)' : 'var(--text-3)',
                                     fontFamily: 'var(--font)', fontWeight: 600, fontSize: 13,
                                     transition: 'all 0.15s',
                                     outline: active ? '1.5px solid var(--border2)' : 'none',
@@ -236,7 +236,7 @@ const DriverDashboard = () => {
                                 onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'var(--surface2)'; }}
                                 onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent'; }}
                             >
-                                <Icon size={15} style={{ color: active ? 'var(--primary)' : 'var(--text-4)', flexShrink: 0 }} />
+                                <Icon size={15} style={{ color: active ? 'var(--primary-text)' : 'var(--text-4)', flexShrink: 0 }} />
                                 <span style={{ flex: 1 }}>{label}</span>
                                 <ChevronRight size={13} style={{ color: 'var(--border)', flexShrink: 0 }} />
                             </button>
@@ -330,7 +330,7 @@ const DriverDashboard = () => {
                             {!isPaid && (
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderRadius: 12, background: 'var(--surface2)', border: '1px solid var(--border)', marginBottom: 16 }}>
                                     <div style={{ width: 14, height: 14, borderRadius: '50%', border: '2px solid var(--primary)', borderTopColor: 'transparent', animation: 'spin 1s linear infinite' }} />
-                                    <span style={{ fontSize: 13, color: 'var(--primary)', fontWeight: 600 }}>Waiting for rider to complete payment...</span>
+                                    <span style={{ fontSize: 13, color: 'var(--primary-text)', fontWeight: 600 }}>Waiting for rider to complete payment...</span>
                                 </div>
                             )}
                             {isPaid && (

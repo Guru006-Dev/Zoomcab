@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, NavigationArrow as Navigation, Clock, CurrencyDollar as DollarSign, User, X, Check, Phone } from '@phosphor-icons/react';
+import { motion } from 'framer-motion';
+import { Clock, Path, User, X, Check, Phone, Star, Lightning, XCircle, CheckCircle } from '@phosphor-icons/react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import GlassBackground from '../components/GlassBackground';
+import './checkout.css';
 import { acceptRide, rejectRide } from '../api';
-import { XCircle, CheckCircle, Star } from '@phosphor-icons/react';
 
 const RideAcceptance = () => {
     const navigate = useNavigate();
@@ -98,162 +97,58 @@ const RideAcceptance = () => {
         }
     };
 
-    if (declined) {
+    if (declined || accepted) {
+        const Icon = accepted ? CheckCircle : XCircle;
         return (
-            <div className="h-screen w-full relative overflow-hidden font-sans flex items-center justify-center bg-black">
-                <GlassBackground />
-                <motion.div
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    className="text-center"
-                >
-                    <XCircle size={60} weight="duotone" className="mx-auto mb-4" />
-                    <div className="text-2xl font-semibold text-white">Ride Declined</div>
-                    <div className="text-gray-400 mt-2">Looking for next ride...</div>
-                </motion.div>
-            </div>
-        );
-    }
-
-    if (accepted) {
-        return (
-            <div className="h-screen w-full relative overflow-hidden font-sans flex items-center justify-center bg-black">
-                <GlassBackground />
-                <motion.div
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    className="text-center"
-                >
-                    <CheckCircle size={60} weight="duotone" className="mx-auto mb-4" />
-                    <div className="text-2xl font-semibold text-white">Ride Accepted!</div>
-                    <div className="text-gray-400 mt-2">Heading to pickup location...</div>
+            <div className="co offer">
+                <motion.div className="offer-result" role="status" initial={{ scale: 0.96, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
+                    <Icon size={64} weight="fill" color={accepted ? 'var(--success)' : 'var(--text-4)'} aria-hidden />
+                    <h1 style={{ fontSize: '1.875rem', fontWeight: 600 }}>{accepted ? 'Ride accepted' : 'Ride declined'}</h1>
+                    <p className="co-muted">{accepted ? 'Heading to the pickup.' : 'Looking for the next ride.'}</p>
                 </motion.div>
             </div>
         );
     }
 
     return (
-        <div className="h-screen w-full relative overflow-hidden font-sans">
-            <GlassBackground />
-            <div className="absolute inset-0 bg-black/60 z-0" />
-
-            <div className="relative z-10 h-full flex flex-col items-center justify-center p-6">
-                {/* Timer Ring */}
-                <div className="relative mb-8">
-                    <svg className="w-32 h-32 transform -rotate-90">
-                        <circle
-                            cx="64"
-                            cy="64"
-                            r="56"
-                            stroke="rgba(255,255,255,0.1)"
-                            strokeWidth="8"
-                            fill="none"
-                        />
-                        <motion.circle
-                            cx="64"
-                            cy="64"
-                            r="56"
-                            stroke="#5B4FE8"
-                            strokeWidth="8"
-                            fill="none"
-                            strokeLinecap="round"
-                            initial={{ strokeDasharray: '351.86', strokeDashoffset: 0 }}
-                            animate={{ strokeDashoffset: (timeLeft / 15) * 351.86 }}
-                            transition={{ duration: 1, ease: 'linear' }}
-                        />
-                    </svg>
-                    <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="text-4xl font-semibold" style={{ color: 'var(--primary-text)' }}>{timeLeft}s</div>
+        <div className="co offer">
+            <motion.section className="co-card offer-card" initial={{ y: 24, opacity: 0 }} animate={{ y: 0, opacity: 1 }} aria-label="New ride request">
+                <div className="offer-time" aria-hidden><span style={{ transform: `scaleX(${timeLeft / 15})` }} /></div>
+                <div className="offer-body">
+                    <div className="co-row">
+                        <p className="co-muted">New ride request</p>
+                        <p className="offer-count">{timeLeft}s</p>
+                    </div>
+                    <div>
+                        <p className="offer-fare">₹{rideRequest.estimatedFare}</p>
+                        <div className="offer-facts" style={{ marginTop: 16 }}>
+                            <span><Path size={16} aria-hidden />{rideRequest.distance}</span>
+                            <span><Clock size={16} aria-hidden />{rideRequest.estimatedTime}</span>
+                            {rideRequest.surgeMultiplier > 1 && <span><Lightning size={16} weight="fill" color="var(--warning)" aria-hidden />{rideRequest.surgeMultiplier}x surge</span>}
+                        </div>
+                    </div>
+                    <ul className="co-route">
+                        <li><small>Pickup</small><strong>{rideRequest.pickup}</strong></li>
+                        <li><small>Drop off</small><strong>{rideRequest.dropoff}</strong></li>
+                    </ul>
+                    <div className="co-row">
+                        <div className="co-person">
+                            <span className="co-avatar"><User size={24} aria-hidden /></span>
+                            <div>
+                                <strong>{rideRequest.rider}</strong>
+                                <p className="co-muted" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                    <Star size={14} weight="fill" color="var(--warning)" aria-hidden />{rideRequest.rating}
+                                </p>
+                            </div>
+                        </div>
+                        <button type="button" className="co-icon" aria-label="Call rider"><Phone size={18} /></button>
+                    </div>
+                    <div className="offer-actions">
+                        <button type="button" className="co-btn quiet" onClick={handleDecline}><X size={20} aria-hidden />Decline</button>
+                        <button type="button" className="co-btn" onClick={handleAccept}><Check size={20} aria-hidden />Accept</button>
                     </div>
                 </div>
-
-                {/* Ride Request Card */}
-                <motion.div
-                    initial={{ y: 50, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    className="w-full max-w-md bg-black/40 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-2xl"
-                >
-                    {/* Header */}
-                    <div className="flex items-center justify-between mb-6">
-                        <div>
-                            <h2 className="text-2xl font-semibold text-white">New Ride Request</h2>
-                            <div className="text-sm font-semibold mt-1" style={{ color: 'var(--primary-text)' }}>
-                                {rideRequest.surgeMultiplier}x Surge
-                            </div>
-                        </div>
-                        <div className="text-right">
-                            <div className="text-3xl font-semibold text-white">₹{rideRequest.estimatedFare}</div>
-                            <div className="text-xs text-gray-400">{rideRequest.distance}</div>
-                        </div>
-                    </div>
-
-                    {/* Rider Info */}
-                    <div className="flex items-center gap-4 mb-6 p-4 rounded-2xl" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                        <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ background: 'var(--primary)' }}>
-                            <User size={32} className="text-white" />
-                        </div>
-                        <div className="flex-1">
-                            <div className="text-lg font-semibold text-white">{rideRequest.rider}</div>
-                            <div className="flex items-center gap-1 text-yellow-400">
-                                <span className="text-sm">{rideRequest.rating}</span>
-                                <Star size={12} weight="fill" />
-                            </div>
-                        </div>
-                        <button className="p-3 rounded-full transition-colors" style={{ background: 'rgba(91,79,232,0.15)', color: 'var(--primary-text)' }}>
-                            <Phone size={20} />
-                        </button>
-                    </div>
-
-                    {/* Route Info */}
-                    <div className="space-y-4 mb-6">
-                        <div className="flex items-start gap-3">
-                            <div className="mt-1 p-2 rounded-full" style={{ background: 'rgba(91,79,232,0.15)' }}>
-                                <MapPin size={20} style={{ color: 'var(--primary-text)' }} />
-                            </div>
-                            <div className="flex-1">
-                                <div className="text-xs text-gray-400 uppercase tracking-wider mb-1">Pickup</div>
-                                <div className="text-white font-semibold">{rideRequest.pickup}</div>
-                            </div>
-                        </div>
-                        <div className="flex items-start gap-3">
-                            <div className="mt-1 p-2 rounded-full" style={{ background: 'rgba(239,68,68,0.15)' }}>
-                                <Navigation size={20} className="text-red-400" />
-                            </div>
-                            <div className="flex-1">
-                                <div className="text-xs text-gray-400 uppercase tracking-wider mb-1">Dropoff</div>
-                                <div className="text-white font-semibold">{rideRequest.dropoff}</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Estimated Time */}
-                    <div className="flex items-center gap-2 mb-6 p-3 rounded-xl border" style={{ background: 'rgba(91,79,232,0.1)', borderColor: 'rgba(91,79,232,0.2)' }}>
-                        <Clock size={18} style={{ color: 'var(--primary-text)' }} />
-                        <span className="text-sm text-gray-300">Estimated trip time: </span>
-                        <span className="text-sm font-semibold text-white">{rideRequest.estimatedTime}</span>
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="grid grid-cols-2 gap-4">
-                        <button
-                            onClick={handleDecline}
-                            className="py-4 hover:bg-white/10 rounded-xl font-semibold text-lg flex items-center justify-center gap-2 transition-colors shadow-lg"
-                            style={{ background: 'rgba(255,255,255,0.05)', color: '#fff', border: '1px solid rgba(255,255,255,0.1)' }}
-                        >
-                            <X size={24} />
-                            Decline
-                        </button>
-                        <button
-                            onClick={handleAccept}
-                            className="py-4 rounded-xl text-white font-semibold text-lg flex items-center justify-center gap-2 transition-colors"
-                            style={{ background: '#5B4FE8', boxShadow: '0 4px 20px rgba(91,79,232,0.4)' }}
-                        >
-                            <Check size={24} />
-                            Accept
-                        </button>
-                    </div>
-                </motion.div>
-            </div>
+            </motion.section>
         </div>
     );
 };

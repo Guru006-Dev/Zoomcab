@@ -59,7 +59,7 @@ export default function Referrals() {
                 {/* How it works */}
                 <div className="card" style={{ padding: 20 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-                        <Gift size={14} style={{ color: 'var(--primary)' }} />
+                        <Gift size={14} style={{ color: 'var(--primary-text)' }} />
                         <p className="section-label">How It Works</p>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -79,7 +79,7 @@ export default function Referrals() {
                 {referrals.length > 0 && (
                     <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
                         <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 8 }}>
-                            <Users size={14} style={{ color: 'var(--primary)' }} />
+                            <Users size={14} style={{ color: 'var(--primary-text)' }} />
                             <p className="section-label">Your Referrals</p>
                         </div>
                         {referrals.map((ref, i) => (

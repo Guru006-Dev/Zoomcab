@@ -69,7 +69,7 @@ export default function BreakScheduler() {
                     {scheduled.map((b, i) => (
                         <div key={b.id} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 20px', borderBottom: i < scheduled.length - 1 ? '1px solid var(--border)' : 'none' }}>
                             <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--surface2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                                <Clock size={16} style={{ color: 'var(--primary)' }} />
+                                <Clock size={16} style={{ color: 'var(--primary-text)' }} />
                             </div>
                             <div style={{ flex: 1 }}>
                                 <p style={{ fontWeight: 600, fontSize: 13, color: 'var(--text-1)', textTransform: 'capitalize' }}>{b.type} Break</p>
@@ -87,7 +87,7 @@ export default function BreakScheduler() {
                 <div className="card" style={{ padding: 20 }}>
                     <p className="section-label" style={{ marginBottom: 14 }}>Break Stats Today</p>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
-                        {[{ label: 'Total Break', val: '45m', color: 'var(--primary)' }, { label: 'Breaks Taken', val: '2', color: 'var(--orange)' }, { label: 'Active Time', val: '7h 15m', color: 'var(--success)' }].map(s => (
+                        {[{ label: 'Total Break', val: '45m', color: 'var(--primary-text)' }, { label: 'Breaks Taken', val: '2', color: 'var(--orange)' }, { label: 'Active Time', val: '7h 15m', color: 'var(--success)' }].map(s => (
                             <div key={s.label} style={{ textAlign: 'center', padding: 12, borderRadius: 12, background: 'var(--surface3)' }}>
                                 <div style={{ fontWeight: 600, fontSize: 20, color: s.color }}>{s.val}</div>
                                 <div className="section-label" style={{ marginTop: 4 }}>{s.label}</div>

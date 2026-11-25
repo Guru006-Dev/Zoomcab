@@ -66,7 +66,7 @@ export default function Settings() {
                                     onMouseLeave={e => handler && (e.currentTarget.style.background = 'transparent')}
                                 >
                                     <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--surface2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                                        <Icon size={16} style={{ color: 'var(--primary)' }} />
+                                        <Icon size={16} style={{ color: 'var(--primary-text)' }} />
                                     </div>
                                     <div style={{ flex: 1 }}>
                                         <p style={{ fontWeight: 600, fontSize: 14, color: 'var(--text-1)' }}>{label}</p>

@@ -287,7 +287,7 @@ export default function Home() {
                                     padding: '9px 12px', borderRadius: 12, border: 'none',
                                     cursor: 'pointer', width: '100%', textAlign: 'left',
                                     background: active ? (special ? 'var(--surface2)' : 'var(--surface2)') : 'transparent',
-                                    color: active ? 'var(--primary)' : 'var(--text-3)',
+                                    color: active ? 'var(--primary-text)' : 'var(--text-3)',
                                     fontFamily: 'var(--font)', fontWeight: special ? 700 : 600, fontSize: 13,
                                     transition: 'all 0.15s',
                                     outline: active ? (special ? '1.5px solid #8B7CF6' : '1.5px solid var(--border2)') : 'none',
@@ -295,7 +295,7 @@ export default function Home() {
                                 onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'var(--surface2)'; }}
                                 onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent'; }}
                             >
-                                <Icon size={15} style={{ color: special ? 'var(--primary-text)' : (active ? 'var(--primary)' : 'var(--text-4)'), flexShrink: 0 }} />
+                                <Icon size={15} style={{ color: special ? 'var(--primary-text)' : (active ? 'var(--primary-text)' : 'var(--text-4)'), flexShrink: 0 }} />
                                 <span style={{ flex: 1, color: special ? 'var(--primary-text)' : 'inherit' }}>{label}</span>
                                 {badge && <span className="badge badge-orange">{badge}</span>}
                                 {!special && <ChevronRight size={13} style={{ color: 'var(--border)', flexShrink: 0 }} />}
@@ -622,7 +622,7 @@ export default function Home() {
                                 </div>
                             </div>
                             <div style={{ textAlign: 'center' }}>
-                                <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--primary)', animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite' }}>Finding your driver…</p>
+                                <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--primary-text)', animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite' }}>Finding your driver…</p>
                                 <p style={{ fontSize: 13, color: 'var(--text-4)', marginTop: 4 }}>Usually under a minute</p>
                             </div>
                             <button
@@ -657,7 +657,7 @@ export default function Home() {
                                         )}
                                         <span style={{ fontSize: 28, filter: !isSelected && 'grayscale(0.4) opacity(0.8)' }}>{v.icon}</span>
                                         <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)' }}>{v.name}</span>
-                                        <span style={{ fontSize: 14, fontWeight: 600, color: isSelected ? 'var(--primary)' : 'var(--text-2)' }}>
+                                        <span style={{ fontSize: 14, fontWeight: 600, color: isSelected ? 'var(--primary-text)' : 'var(--text-2)' }}>
                                             {v.price ? `₹${v.price}` : '—'}
                                         </span>
                                         {v.time && <span style={{ fontSize: 10, color: 'var(--text-4)', marginTop: -2 }}>{v.time}</span>}
@@ -699,7 +699,7 @@ export default function Home() {
                         }}>Saved Places</p>
                         <button
                             onClick={() => navigate('/saved-places')}
-                            style={{ fontSize: 11, fontWeight: 600, color: 'var(--primary)', background: 'none', border: 'none', cursor: 'pointer' }}
+                            style={{ fontSize: 11, fontWeight: 600, color: 'var(--primary-text)', background: 'none', border: 'none', cursor: 'pointer' }}
                         >
                             Manage →
                         </button>

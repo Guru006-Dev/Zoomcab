@@ -71,7 +71,7 @@ export default function Profile() {
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginTop: 24 }}>
                         {[
                             { label: 'Rating', value: '4.8', color: 'var(--warning)' },
-                            { label: 'Total Rides', value: '124', color: 'var(--primary)' },
+                            { label: 'Total Rides', value: '124', color: 'var(--primary-text)' },
                             { label: 'Since', value: '2023', color: 'var(--success)' },
                         ].map(s => (
                             <div key={s.label} style={{ padding: 14, borderRadius: 14, background: 'var(--surface3)', border: '1px solid var(--border)', textAlign: 'center' }}>
@@ -85,7 +85,7 @@ export default function Profile() {
                 {/* Badges */}
                 <div className="card" style={{ padding: 20 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-                        <Award size={16} style={{ color: 'var(--primary)' }} />
+                        <Award size={16} style={{ color: 'var(--primary-text)' }} />
                         <p className="section-label">Achievements</p>
                     </div>
                     <Badges />

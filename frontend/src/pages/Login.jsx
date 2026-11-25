@@ -144,7 +144,7 @@ export default function Login() {
                             flex: 1, padding: '10px 0', borderRadius: 11, border: 'none', cursor: 'pointer',
                             fontFamily: 'var(--font)', fontWeight: 600, fontSize: 14, transition: 'all 0.25s',
                             background: mode === m ? 'var(--surface)' : 'transparent',
-                            color: mode === m ? 'var(--primary)' : 'var(--text-4)',
+                            color: mode === m ? 'var(--primary-text)' : 'var(--text-4)',
                             boxShadow: mode === m ? 'var(--shadow-sm)' : 'none',
                         }}>{label}</button>
                     ))}

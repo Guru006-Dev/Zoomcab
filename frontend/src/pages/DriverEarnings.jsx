@@ -61,7 +61,7 @@ export default function DriverEarnings() {
                     <div className="card" style={{ padding: 20 }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                <Target size={15} style={{ color: 'var(--primary)' }} />
+                                <Target size={15} style={{ color: 'var(--primary-text)' }} />
                                 <span style={{ fontWeight: 600, fontSize: 14, color: 'var(--text-1)' }}>Daily Goal</span>
                             </div>
                             <span style={{ fontWeight: 600, fontSize: 13, color: 'var(--text-3)' }}>₹{goal} target</span>
@@ -73,7 +73,7 @@ export default function DriverEarnings() {
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8, fontSize: 12 }}>
                             <span style={{ color: 'var(--text-4)' }}>{Math.round(progress)}% complete</span>
                             {data.total < goal
-                                ? <span style={{ color: 'var(--primary)', fontWeight: 600 }}>₹{goal - data.total} to go</span>
+                                ? <span style={{ color: 'var(--primary-text)', fontWeight: 600 }}>₹{goal - data.total} to go</span>
                                 : <span style={{ color: 'var(--success)', fontWeight: 600 }}>Goal achieved!</span>
                             }
                         </div>
@@ -83,7 +83,7 @@ export default function DriverEarnings() {
                 {/* Chart */}
                 <div className="card" style={{ padding: 20 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-                        <TrendingUp size={15} style={{ color: 'var(--primary)' }} />
+                        <TrendingUp size={15} style={{ color: 'var(--primary-text)' }} />
                         <p style={{ fontWeight: 600, fontSize: 14, color: 'var(--text-1)' }}>Earnings Trend</p>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4, height: 100 }}>
@@ -106,7 +106,7 @@ export default function DriverEarnings() {
                         { label: 'Base Fare', value: data.total - data.tips - data.surge - data.bonus, color: 'var(--text-1)' },
                         { label: 'Tips', value: `+${data.tips}`, color: 'var(--success)' },
                         { label: 'Surge', value: `+${data.surge}`, color: 'var(--orange)' },
-                        { label: 'Bonuses', value: `+${data.bonus}`, color: 'var(--primary)' },
+                        { label: 'Bonuses', value: `+${data.bonus}`, color: 'var(--primary-text)' },
                     ].map((row, i, arr) => (
                         <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 20px', borderBottom: i < arr.length - 1 ? '1px solid var(--border)' : 'none' }}>
                             <span style={{ fontSize: 13, color: 'var(--text-2)' }}>{row.label}</span>

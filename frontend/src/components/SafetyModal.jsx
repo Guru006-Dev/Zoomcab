@@ -116,7 +116,7 @@ const SafetyModal = ({ isOpen, onClose }) => {
                                         background: 'var(--surface)', display: 'flex', alignItems: 'center', justifyContent: 'center',
                                         boxShadow: '0 2px 8px rgba(91,79,232,0.08)', flexShrink: 0
                                     }}>
-                                        <Share2 size={18} style={{ color: 'var(--primary)' }} />
+                                        <Share2 size={18} style={{ color: 'var(--primary-text)' }} />
                                     </div>
                                     <div style={{ flex: 1 }}>
                                         <h3 style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)', margin: '0 0 2px 0' }}>Share Trip</h3>
