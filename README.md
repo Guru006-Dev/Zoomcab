@@ -12,7 +12,7 @@ Leaflet + OSRM routing · Google Gemini (concierge chatbot)
 
 ---
 
-## What it does
+
 
 **Riders** pick a destination on the map, choose a vehicle and request a ride. The nearest free
 driver gets the offer; the rider sees the driver accept and then move toward the pickup in real
