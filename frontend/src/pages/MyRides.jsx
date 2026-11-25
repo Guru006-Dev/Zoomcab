@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { MapPin, Calendar, Download, Star } from 'lucide-react';
+import { MapPin, Calendar, DownloadSimple as Download, Star } from '@phosphor-icons/react';
 import PageLayout from '../components/PageLayout';
 import RatingModal from '../components/RatingModal';
 
@@ -37,14 +37,14 @@ export default function MyRides() {
                     >
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
                             <div>
-                                <h3 style={{ fontWeight: 700, fontSize: 15, color: 'var(--text-1)' }}>{ride.vehicle}</h3>
+                                <h3 style={{ fontWeight: 600, fontSize: 15, color: 'var(--text-1)' }}>{ride.vehicle}</h3>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
                                     <Calendar size={13} style={{ color: 'var(--text-4)' }} />
                                     <span style={{ fontSize: 12, color: 'var(--text-4)' }}>{ride.date} · {ride.time}</span>
                                 </div>
                             </div>
                             <div style={{ textAlign: 'right' }}>
-                                <div style={{ fontWeight: 800, fontSize: 18, color: 'var(--primary)' }}>₹{ride.price}</div>
+                                <div style={{ fontWeight: 600, fontSize: 18, color: 'var(--primary-text)' }}>₹{ride.price}</div>
                                 <span className={`badge ${ride.status === 'Completed' ? 'badge-success' : 'badge-danger'}`} style={{ marginTop: 4 }}>
                                     {ride.status}
                                 </span>
@@ -80,7 +80,7 @@ export default function MyRides() {
                                     <button
                                         onClick={() => { setSelectedRide(ride); setRatingOpen(true); }}
                                         className="btn-ghost"
-                                        style={{ padding: '6px 12px', fontSize: 12, gap: 4, color: 'var(--primary)', borderColor: 'var(--border2)', background: 'var(--surface2)' }}
+                                        style={{ padding: '6px 12px', fontSize: 12, gap: 4, color: 'var(--primary-text)', borderColor: 'var(--border2)', background: 'var(--surface2)' }}
                                     >
                                         <Star size={13} /> Rate
                                     </button>

@@ -1,6 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import 'leaflet/dist/leaflet.css'
+import '@fontsource-variable/geist'
 import './index.css'
 import App from './App.jsx'
 import React from 'react'
@@ -22,7 +23,7 @@ class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div style={{ padding: 20, color: 'red', background: 'white' }}>
+        <div style={{ padding: 20, color: 'red', background: 'var(--surface)' }}>
           <h1>Something went wrong.</h1>
           <pre>{this.state.error?.toString()}</pre>
           <pre>{this.state.error?.stack}</pre>

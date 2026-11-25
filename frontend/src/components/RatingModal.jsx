@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Star, ThumbsUp, Heart, Zap, Send } from 'lucide-react';
+import { X, Star, ThumbsUp, Heart, Lightning as Zap, PaperPlaneRight as Send } from '@phosphor-icons/react';
 
 const RatingModal = ({ isOpen, onClose, driverName = 'Rajesh Kumar', onSubmit }) => {
     const [rating, setRating] = useState(0);
@@ -70,7 +70,7 @@ const RatingModal = ({ isOpen, onClose, driverName = 'Rajesh Kumar', onSubmit })
 
                             {/* Header */}
                             <div className="text-center mb-6">
-                                <h2 className="text-2xl font-bold text-white mb-2">Rate Your Ride</h2>
+                                <h2 className="text-2xl font-semibold text-white mb-2">Rate Your Ride</h2>
                                 <p className="text-gray-400 text-sm">How was your experience with {driverName}?</p>
                             </div>
 
@@ -88,7 +88,7 @@ const RatingModal = ({ isOpen, onClose, driverName = 'Rajesh Kumar', onSubmit })
                                             size={40}
                                             className={`transition-colors ${star <= (hoveredRating || rating)
                                                     ? 'fill-orange-400 text-orange-400'
-                                                    : 'text-gray-600'
+                                                    : 'text-gray-400'
                                                 }`}
                                         />
                                     </button>
@@ -147,9 +147,9 @@ const RatingModal = ({ isOpen, onClose, driverName = 'Rajesh Kumar', onSubmit })
                             <button
                                 onClick={handleSubmit}
                                 disabled={rating === 0}
-                                className={`w-full py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 transition-all ${rating > 0
+                                className={`w-full py-4 rounded-xl font-semibold text-lg flex items-center justify-center gap-2 transition-all ${rating > 0
                                         ? 'bg-orange-500 text-white hover:bg-orange-400 shadow-[0_0_30px_rgba(255,153,51,0.4)]'
-                                        : 'bg-white/5 text-gray-500 cursor-not-allowed'
+                                        : 'bg-white/5 text-gray-400 cursor-not-allowed'
                                     }`}
                             >
                                 <Send size={20} />

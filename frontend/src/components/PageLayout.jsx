@@ -1,13 +1,7 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import {
-    ArrowLeft, Home, Wallet, History, Settings,
-    UserPlus, Award, Shield, TrendingUp,
-    ChevronRight, Car, Facebook, Twitter, Instagram, Github,
-    MapPin, BarChart3, Coffee, Receipt, Wind, Sparkles
-} from 'lucide-react';
-import ZoomcabLogo from '../assets/ChatGPT Image Feb 21, 2026, 09_27_37 PM.png';
-import { SocialTooltip } from './ui/social-media';
+import { ArrowLeft, House as Home, Wallet, ClockCounterClockwise as History, Gear as Settings, UserPlus, Medal as Award, Shield, TrendUp as TrendingUp, CaretRight as ChevronRight, Car, MapPin, ChartBar as BarChart3, Coffee, Receipt, Wind, Sparkle as Sparkles } from '@phosphor-icons/react';
+import Brand from './Brand';
 
 const riderNavItems = [
     { label: 'Home', icon: Home, path: '/home' },
@@ -73,24 +67,12 @@ export default function PageLayout({ title, subtitle, children, headerRight, noP
                 }}
             >
                 {/* Brand */}
-                <div data-side-extra style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 4, position: 'relative' }}>
-                    <img
-                        src={ZoomcabLogo}
-                        alt="ZoomCab Logo"
-                        style={{
-                            width: 130,
-                            objectFit: 'contain',
-                            background: 'linear-gradient(135deg, #5B4FE8, #7C6EF5)',
-                            padding: '6px 10px',
-                            borderRadius: 14,
-                            margin: '0 auto',
-                            boxShadow: '0 4px 12px rgba(91,79,232,0.15)'
-                        }}
-                    />
+                <div data-side-extra style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 4, flexDirection: 'column', gap: 6 }}>
+                    <Brand />
                     {displayRole === 'driver' && (
                         <span
                             className="badge badge-primary"
-                            style={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)', scale: 0.85, transformOrigin: 'right center' }}
+                            style={{ scale: 0.85 }}
                         >Driver</span>
                     )}
                 </div>
@@ -98,15 +80,15 @@ export default function PageLayout({ title, subtitle, children, headerRight, noP
                 {/* Avatar */}
                 <div data-side-extra style={{
                     borderRadius: 16, padding: 16, textAlign: 'center',
-                    background: 'linear-gradient(135deg,#F3F1FF,#EBF0FF)',
+                    background: 'var(--surface2)',
                     display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10,
                 }}>
                     <div style={{ position: 'relative' }}>
                         <div style={{
                             width: 52, height: 52, borderRadius: 14,
-                            background: 'linear-gradient(135deg,#5B4FE8,#8B7CF6)',
+                            background: 'var(--primary)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontSize: 22, fontWeight: 800, color: '#fff',
+                            fontSize: 22, fontWeight: 600, color: '#fff',
                         }}>
                             {username[0]?.toUpperCase()}
                         </div>
@@ -117,7 +99,7 @@ export default function PageLayout({ title, subtitle, children, headerRight, noP
                         }} />
                     </div>
                     <div>
-                        <p style={{ fontWeight: 700, fontSize: 13, color: 'var(--text-1)' }}>{username}</p>
+                        <p style={{ fontWeight: 600, fontSize: 13, color: 'var(--text-1)' }}>{username}</p>
                         <p style={{ fontSize: 11, color: 'var(--text-4)', marginTop: 2 }}>{displayRole === 'driver' ? 'Driver' : 'Rider'}</p>
                     </div>
                 </div>
@@ -134,8 +116,8 @@ export default function PageLayout({ title, subtitle, children, headerRight, noP
                                     display: 'flex', alignItems: 'center', gap: 10,
                                     padding: '9px 12px', borderRadius: 12, border: 'none',
                                     cursor: 'pointer', width: '100%', textAlign: 'left',
-                                    background: active ? (special ? 'linear-gradient(135deg, #F3F1FF, #EBF0FF)' : 'var(--surface2)') : 'transparent',
-                                    color: active ? 'var(--primary)' : 'var(--text-3)',
+                                    background: active ? (special ? 'var(--surface2)' : 'var(--surface2)') : 'transparent',
+                                    color: active ? 'var(--primary-text)' : 'var(--text-3)',
                                     fontFamily: 'var(--font)', fontWeight: special ? 700 : 600, fontSize: 13,
                                     transition: 'all 0.15s',
                                     outline: active ? (special ? '1.5px solid #8B7CF6' : '1.5px solid var(--border2)') : 'none',
@@ -143,8 +125,8 @@ export default function PageLayout({ title, subtitle, children, headerRight, noP
                                 onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'var(--surface2)'; }}
                                 onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent'; }}
                             >
-                                <Icon size={15} style={{ color: special ? '#8B7CF6' : (active ? 'var(--primary)' : 'var(--text-4)'), flexShrink: 0 }} />
-                                <span style={{ flex: 1, color: special ? '#5B4FE8' : 'inherit' }}>{label}</span>
+                                <Icon size={15} style={{ color: special ? 'var(--primary-text)' : (active ? 'var(--primary-text)' : 'var(--text-4)'), flexShrink: 0 }} />
+                                <span style={{ flex: 1, color: special ? 'var(--primary-text)' : 'inherit' }}>{label}</span>
                                 {badge && <span className="badge badge-orange">{badge}</span>}
                                 {!special && <ChevronRight size={13} style={{ color: 'var(--border)', flexShrink: 0 }} />}
                             </button>
@@ -158,9 +140,9 @@ export default function PageLayout({ title, subtitle, children, headerRight, noP
                     style={{
                         display: 'flex', alignItems: 'center', gap: 8,
                         padding: '10px 14px', borderRadius: 12,
-                        background: '#F0FDF4', color: '#16A34A',
-                        border: '1px solid #BBF7D0', cursor: 'pointer',
-                        fontFamily: 'var(--font)', fontWeight: 700, fontSize: 13,
+                        background: 'rgba(61,220,132,0.14)', color: 'var(--success)',
+                        border: '1px solid rgba(61,220,132,0.4)', cursor: 'pointer',
+                        fontFamily: 'var(--font)', fontWeight: 600, fontSize: 13,
                     }}
                 >
                     <Shield size={15} />
@@ -179,18 +161,6 @@ export default function PageLayout({ title, subtitle, children, headerRight, noP
                     Sign out →
                 </button>
 
-                {/* Social Media Component Integration */}
-                <div data-side-extra style={{ marginTop: 16, display: 'flex', justifyContent: 'center' }}>
-                    <SocialTooltip
-                        items={[
-                            { href: "#", ariaLabel: "Facebook", tooltip: "Facebook", color: "#1877F2", icon: Facebook },
-                            { href: "#", ariaLabel: "Twitter", tooltip: "Twitter", color: "#1DA1F2", icon: Twitter },
-                            { href: "#", ariaLabel: "Instagram", tooltip: "Instagram", color: "#E4405F", icon: Instagram },
-                            { href: "#", ariaLabel: "Github", tooltip: "Github", color: "#333333", icon: Github },
-                        ]}
-                        className="gap-2"
-                    />
-                </div>
             </motion.aside>
 
             {/* ── Main ── */}
@@ -218,7 +188,7 @@ export default function PageLayout({ title, subtitle, children, headerRight, noP
                             <ArrowLeft size={16} />
                         </button>
                         <div>
-                            <h1 style={{ fontWeight: 800, fontSize: 20, color: 'var(--text-1)', letterSpacing: '-0.02em' }}>{title}</h1>
+                            <h1 style={{ fontWeight: 600, fontSize: 20, color: 'var(--text-1)', letterSpacing: '-0.02em' }}>{title}</h1>
                             {subtitle && <p style={{ fontSize: 12, color: 'var(--text-4)', marginTop: 2 }}>{subtitle}</p>}
                         </div>
                     </div>

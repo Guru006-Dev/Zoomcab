@@ -19,6 +19,7 @@ export default function Landing() {
                 <a href="#hero">How it works</a>
                 <a href={REPO}>Code</a>
                 <Link to="/login">Sign in</Link>
+                <Link to="/login?mode=signup">Sign up</Link>
             </nav>
             <main>
                 <Film ref={hero} />

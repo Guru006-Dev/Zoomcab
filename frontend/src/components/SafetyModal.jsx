@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, AlertTriangle, Share2, Phone, Check, ShieldAlert } from 'lucide-react';
+import { ArrowLeft, Warning as AlertTriangle, ShareNetwork as Share2, Phone, Check, ShieldWarning as ShieldAlert } from '@phosphor-icons/react';
 
 const SafetyModal = ({ isOpen, onClose }) => {
     const [copied, setCopied] = useState(false);
@@ -22,7 +22,7 @@ const SafetyModal = ({ isOpen, onClose }) => {
 
     const handleSOS = () => {
         // In a real app, this would trigger emergency services
-        alert('🚨 SOS Alert sent to emergency contacts and police!');
+        alert('SOS Alert sent to emergency contacts and police!');
     };
 
     return (
@@ -93,20 +93,20 @@ const SafetyModal = ({ isOpen, onClose }) => {
                                 <div style={{
                                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                                     margin: '0 auto 12px', fontFamily: 'system-ui, -apple-system, sans-serif',
-                                    fontWeight: 900, fontSize: 64, color: '#111', lineHeight: 1,
+                                    fontWeight: 600, fontSize: 64, color: 'var(--text-1)', lineHeight: 1,
                                     letterSpacing: '-0.04em'
                                 }}>
                                     <span style={{ marginRight: '-0.12em', position: 'relative', zIndex: 2 }}>S</span>
                                     <span style={{ position: 'relative', zIndex: 1 }}>O</span>
                                     <span style={{ marginLeft: '-0.12em', position: 'relative', zIndex: 2 }}>S</span>
                                 </div>
-                                <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.02em', margin: '0 0 4px 0' }}>Safety Features</h2>
+                                <h2 style={{ fontSize: 20, fontWeight: 600, color: 'var(--text-1)', letterSpacing: '-0.02em', margin: '0 0 4px 0' }}>Safety Features</h2>
                                 <p style={{ fontSize: 13, color: 'var(--text-4)', margin: 0, fontWeight: 500 }}>Stay secure during your ride</p>
                             </div>
 
                             {/* Share Trip Block */}
                             <div style={{
-                                background: 'linear-gradient(135deg,#F3F1FF,#EBF0FF)',
+                                background: 'var(--surface2)',
                                 borderRadius: 16, padding: 16, marginBottom: 16,
                                 border: '1px solid rgba(91,79,232,0.1)'
                             }}>
@@ -116,10 +116,10 @@ const SafetyModal = ({ isOpen, onClose }) => {
                                         background: 'var(--surface)', display: 'flex', alignItems: 'center', justifyContent: 'center',
                                         boxShadow: '0 2px 8px rgba(91,79,232,0.08)', flexShrink: 0
                                     }}>
-                                        <Share2 size={18} style={{ color: 'var(--primary)' }} />
+                                        <Share2 size={18} style={{ color: 'var(--primary-text)' }} />
                                     </div>
                                     <div style={{ flex: 1 }}>
-                                        <h3 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)', margin: '0 0 2px 0' }}>Share Trip</h3>
+                                        <h3 style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)', margin: '0 0 2px 0' }}>Share Trip</h3>
                                         <p style={{ fontSize: 12, color: 'var(--text-4)', margin: '0 0 12px 0', lineHeight: 1.3 }}>Send live location to friends & family</p>
                                         <button
                                             onClick={handleShare}
@@ -127,7 +127,7 @@ const SafetyModal = ({ isOpen, onClose }) => {
                                                 width: '100%', padding: '10px', borderRadius: 12,
                                                 background: 'var(--primary)', color: '#fff',
                                                 border: 'none', cursor: 'pointer',
-                                                fontFamily: 'var(--font)', fontWeight: 700, fontSize: 13,
+                                                fontFamily: 'var(--font)', fontWeight: 600, fontSize: 13,
                                                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                                                 boxShadow: '0 4px 12px rgba(91,79,232,0.25)',
                                                 transition: 'opacity 0.2s',
@@ -144,9 +144,9 @@ const SafetyModal = ({ isOpen, onClose }) => {
 
                             {/* Emergency Contacts Block */}
                             <div style={{
-                                background: '#FFF8F3',
+                                background: 'rgba(251,191,36,0.14)',
                                 borderRadius: 16, padding: 16, marginBottom: 20,
-                                border: '1px solid #FFE8D6'
+                                border: '1px solid rgba(251,191,36,0.4)'
                             }}>
                                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
                                     <div style={{
@@ -154,10 +154,10 @@ const SafetyModal = ({ isOpen, onClose }) => {
                                         background: 'var(--surface)', display: 'flex', alignItems: 'center', justifyContent: 'center',
                                         boxShadow: '0 2px 8px rgba(249,115,22,0.08)', flexShrink: 0
                                     }}>
-                                        <Phone size={18} style={{ color: '#F97316' }} />
+                                        <Phone size={18} style={{ color: 'var(--warning)' }} />
                                     </div>
                                     <div style={{ flex: 1 }}>
-                                        <h3 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)', margin: '0 0 2px 0' }}>Emergency</h3>
+                                        <h3 style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)', margin: '0 0 2px 0' }}>Emergency</h3>
                                         <p style={{ fontSize: 12, color: 'var(--text-4)', margin: '0 0 12px 0', lineHeight: 1.3 }}>Quick access to local authorities</p>
                                         <div style={{ display: 'flex', gap: 8 }}>
                                             <button style={{
@@ -192,9 +192,9 @@ const SafetyModal = ({ isOpen, onClose }) => {
                                 onClick={handleSOS}
                                 style={{
                                     width: '100%', padding: '14px', borderRadius: 14,
-                                    background: 'linear-gradient(135deg, #EF4444, #DC2626)',
+                                    background: 'var(--surface2)',
                                     color: '#fff', border: 'none', cursor: 'pointer',
-                                    fontFamily: 'var(--font)', fontWeight: 800, fontSize: 14,
+                                    fontFamily: 'var(--font)', fontWeight: 600, fontSize: 14,
                                     letterSpacing: '0.05em',
                                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                                     boxShadow: '0 8px 24px rgba(239,68,68,0.3)',

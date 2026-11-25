@@ -1,0 +1,46 @@
+/* The one place the app's colours and font live. The landing page uses the same values. */
+:root {
+  color-scheme: dark;
+
+  --bg: #000000;
+  --surface: #181818;
+  --surface2: #1f1f1f;
+  --surface3: #272727;
+
+  --primary: #5b4fe8;
+  --primary-text: #8b82ff;
+  --primary-lt: #26233f;
+  --primary-dk: #4840cc;
+
+  --success: #3ddc84;
+  --warning: #fbbf24;
+  --danger: #f87171;
+  --orange: #fb923c;
+
+  --text-1: #ffffff;
+  --text-2: #e5e7eb;
+  --text-3: #b4b6c6;
+  --text-4: #999cad;
+
+  --border: #313131;
+  --border2: #313131;
+
+  --shadow-sm: 0 1px 3px rgb(0 0 0 / 0.5);
+  --shadow-md: 0 4px 16px rgb(0 0 0 / 0.55);
+  --shadow-lg: 0 8px 32px rgb(0 0 0 / 0.7);
+
+  --font: 'Geist Variable', system-ui, sans-serif;
+}
+
+body { background: var(--bg); color: var(--text-2); font-family: var(--font); }
+
+/* Standard OpenStreetMap tiles, darkened. Only the tiles: markers and routes keep their colour. */
+.map-dark { filter: invert(1) hue-rotate(180deg) brightness(0.92) contrast(0.9) saturate(0.55); }
+.leaflet-container { background: #181818; }
+.leaflet-popup-content-wrapper, .leaflet-popup-tip { background: var(--surface2); color: var(--text-1); }
+.leaflet-control-attribution { background: rgb(0 0 0 / 0.7) !important; color: var(--text-4) !important; }
+.leaflet-control-attribution a { color: var(--text-3) !important; }
+
+@keyframes page-fade { from { opacity: 0; } }
+.page-fade { animation: page-fade 200ms ease-out; }
+@media (prefers-reduced-motion: reduce) { .page-fade { animation: none; } }

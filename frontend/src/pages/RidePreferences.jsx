@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Music, Wind, MessageCircle, Dog, Save, CheckCircle } from 'lucide-react';
+import { ArrowLeft, MusicNote as Music, Wind, ChatCircle as MessageCircle, Dog, FloppyDisk as Save, CheckCircle } from '@phosphor-icons/react';
 import PageLayout from '../components/PageLayout';
 
 const RidePreferences = () => {
@@ -36,9 +36,9 @@ const RidePreferences = () => {
                 >
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
                         <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--surface2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <Music size={18} style={{ color: 'var(--primary)' }} />
+                            <Music size={18} style={{ color: 'var(--primary-text)' }} />
                         </div>
-                        <h3 style={{ fontWeight: 700, fontSize: 16, color: 'var(--text-1)' }}>Music</h3>
+                        <h3 style={{ fontWeight: 600, fontSize: 16, color: 'var(--text-1)' }}>Music</h3>
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
                         {['off', 'low', 'any'].map((option) => (
@@ -46,7 +46,7 @@ const RidePreferences = () => {
                                 key={option}
                                 onClick={() => updatePref('music', option)}
                                 style={{
-                                    padding: '12px', borderRadius: 12, cursor: 'pointer', fontFamily: 'var(--font)', fontSize: 13, fontWeight: 700,
+                                    padding: '12px', borderRadius: 12, cursor: 'pointer', fontFamily: 'var(--font)', fontSize: 13, fontWeight: 600,
                                     transition: 'all 0.2s', textTransform: 'capitalize',
                                     background: preferences.music === option ? 'var(--primary)' : 'var(--surface3)',
                                     color: preferences.music === option ? '#fff' : 'var(--text-2)',
@@ -67,9 +67,9 @@ const RidePreferences = () => {
                 >
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
                         <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--surface2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <Wind size={18} style={{ color: 'var(--primary)' }} />
+                            <Wind size={18} style={{ color: 'var(--primary-text)' }} />
                         </div>
-                        <h3 style={{ fontWeight: 700, fontSize: 16, color: 'var(--text-1)' }}>Air Conditioning</h3>
+                        <h3 style={{ fontWeight: 600, fontSize: 16, color: 'var(--text-1)' }}>Air Conditioning</h3>
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
                         {['low', 'moderate', 'high'].map((option) => (
@@ -77,7 +77,7 @@ const RidePreferences = () => {
                                 key={option}
                                 onClick={() => updatePref('ac', option)}
                                 style={{
-                                    padding: '12px', borderRadius: 12, cursor: 'pointer', fontFamily: 'var(--font)', fontSize: 13, fontWeight: 700,
+                                    padding: '12px', borderRadius: 12, cursor: 'pointer', fontFamily: 'var(--font)', fontSize: 13, fontWeight: 600,
                                     transition: 'all 0.2s', textTransform: 'capitalize',
                                     background: preferences.ac === option ? 'var(--primary)' : 'var(--surface3)',
                                     color: preferences.ac === option ? '#fff' : 'var(--text-2)',
@@ -98,9 +98,9 @@ const RidePreferences = () => {
                 >
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
                         <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--surface2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <MessageCircle size={18} style={{ color: 'var(--primary)' }} />
+                            <MessageCircle size={18} style={{ color: 'var(--primary-text)' }} />
                         </div>
-                        <h3 style={{ fontWeight: 700, fontSize: 16, color: 'var(--text-1)' }}>Conversation</h3>
+                        <h3 style={{ fontWeight: 600, fontSize: 16, color: 'var(--text-1)' }}>Conversation</h3>
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
                         {[
@@ -112,7 +112,7 @@ const RidePreferences = () => {
                                 key={option.value}
                                 onClick={() => updatePref('conversation', option.value)}
                                 style={{
-                                    padding: '12px', borderRadius: 12, cursor: 'pointer', fontFamily: 'var(--font)', fontSize: 13, fontWeight: 700,
+                                    padding: '12px', borderRadius: 12, cursor: 'pointer', fontFamily: 'var(--font)', fontSize: 13, fontWeight: 600,
                                     transition: 'all 0.2s', textTransform: 'capitalize',
                                     background: preferences.conversation === option.value ? 'var(--primary)' : 'var(--surface3)',
                                     color: preferences.conversation === option.value ? '#fff' : 'var(--text-2)',
@@ -133,11 +133,11 @@ const RidePreferences = () => {
                 >
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                            <div style={{ width: 36, height: 36, borderRadius: 10, background: '#F0FDF4', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <Dog size={18} style={{ color: '#16A34A' }} />
+                            <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(61,220,132,0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <Dog size={18} style={{ color: 'var(--success)' }} />
                             </div>
                             <div>
-                                <h3 style={{ fontWeight: 700, fontSize: 15, color: 'var(--text-1)' }}>Pet-Friendly Rides</h3>
+                                <h3 style={{ fontWeight: 600, fontSize: 15, color: 'var(--text-1)' }}>Pet-Friendly Rides</h3>
                                 <p style={{ fontSize: 12, color: 'var(--text-4)', marginTop: 2 }}>Request drivers who accept pets</p>
                             </div>
                         </div>
@@ -152,7 +152,7 @@ const RidePreferences = () => {
                             }}
                         >
                             <div style={{
-                                width: 18, height: 18, borderRadius: '50%', background: '#fff',
+                                width: 18, height: 18, borderRadius: '50%', background: 'var(--surface)',
                                 position: 'absolute', top: 3, transition: 'left 0.2s',
                                 left: preferences.petFriendly ? 'calc(100% - 21px)' : 3,
                                 boxShadow: '0 1px 4px rgba(0,0,0,0.2)',

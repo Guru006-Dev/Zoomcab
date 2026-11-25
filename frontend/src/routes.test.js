@@ -8,7 +8,7 @@ test('landing is at / and sign in at /login', () => {
 });
 
 test('nothing signs out to the landing page', () => {
-    for (const f of ['./components/PageLayout.jsx', './components/SideMenu.jsx', './pages/Home.jsx',
+    for (const f of ['./components/PageLayout.jsx', './pages/Home.jsx',
         './pages/DriverDashboard.jsx', './pages/Settings.jsx']) {
         expect(src(f)).not.toMatch(/navigate\('\/'\)/);
     }

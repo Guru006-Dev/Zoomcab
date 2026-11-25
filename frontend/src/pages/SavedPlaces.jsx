@@ -1,6 +1,7 @@
+import Glyph from '../components/Glyph';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Plus, Trash2, Edit2, Check, X } from 'lucide-react';
+import { MapPin, Plus, Trash as Trash2, PencilSimple as Edit2, Check, X } from '@phosphor-icons/react';
 import PageLayout from '../components/PageLayout';
 import useSavedPlaces from '../hooks/useSavedPlaces';
 
@@ -32,7 +33,7 @@ export default function SavedPlaces() {
                     {showAdd && (
                         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
                             className="card" style={{ padding: 20, outline: '1.5px solid var(--border2)' }}>
-                            <p style={{ fontWeight: 700, fontSize: 14, color: 'var(--text-1)', marginBottom: 12 }}>New Place</p>
+                            <p style={{ fontWeight: 600, fontSize: 14, color: 'var(--text-1)', marginBottom: 12 }}>New Place</p>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                                 <input className="input" placeholder="Place name (e.g., Gym)" value={newName} onChange={e => setNewName(e.target.value)} />
                                 <input className="input" placeholder="Address" value={newAddr} onChange={e => setNewAddr(e.target.value)} />
@@ -52,10 +53,10 @@ export default function SavedPlaces() {
                         <motion.div key={place.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.06 }}
                             className="card" style={{ padding: 16, display: 'flex', alignItems: 'center', gap: 14 }}>
                             <div style={{ width: 40, height: 40, borderRadius: 12, background: 'var(--surface2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 }}>
-                                {place.icon || <MapPin size={18} style={{ color: 'var(--primary)' }} />}
+                                <Glyph name={place.icon} />
                             </div>
                             <div style={{ flex: 1 }}>
-                                <p style={{ fontWeight: 700, fontSize: 14, color: 'var(--text-1)' }}>{place.name}</p>
+                                <p style={{ fontWeight: 600, fontSize: 14, color: 'var(--text-1)' }}>{place.name}</p>
                                 {isEditing ? (
                                     <input className="input" style={{ marginTop: 6 }} placeholder="Enter address" value={editAddress} onChange={e => setEditAddress(e.target.value)} autoFocus />
                                 ) : (
@@ -76,7 +77,7 @@ export default function SavedPlaces() {
                                         </button>
                                         {canDelete && (
                                             <button onClick={() => removePlace(place.id)}
-                                                style={{ width: 32, height: 32, borderRadius: 8, background: '#FEF2F2', border: '1px solid #FECACA', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#DC2626' }}>
+                                                style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(248,113,113,0.16)', border: '1px solid rgba(248,113,113,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--danger)' }}>
                                                 <Trash2 size={13} />
                                             </button>
                                         )}

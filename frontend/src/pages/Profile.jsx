@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Edit2, Check, Star, Award } from 'lucide-react';
+import { PencilSimple as Edit2, Check, Star, Medal as Award } from '@phosphor-icons/react';
 import PageLayout from '../components/PageLayout';
 import Badges from '../components/Badges';
 
@@ -48,7 +48,7 @@ export default function Profile() {
                                     { key: 'email', label: 'Email', type: 'email' },
                                 ].map(({ key, label, type }) => (
                                     <div key={key} style={{ textAlign: 'left' }}>
-                                        <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-4)', display: 'block', marginBottom: 4 }}>{label}</label>
+                                        <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-4)', display: 'block', marginBottom: 4 }}>{label}</label>
                                         <input
                                             className="input"
                                             type={type}
@@ -60,7 +60,7 @@ export default function Profile() {
                             </motion.div>
                         ) : (
                             <motion.div key="view" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                                <h2 style={{ fontWeight: 800, fontSize: 22, color: 'var(--text-1)', letterSpacing: '-0.02em' }}>{userData.name}</h2>
+                                <h2 style={{ fontWeight: 600, fontSize: 22, color: 'var(--text-1)', letterSpacing: '-0.02em' }}>{userData.name}</h2>
                                 <p style={{ fontSize: 14, color: 'var(--text-3)', marginTop: 4 }}>{userData.phone}</p>
                                 <p style={{ fontSize: 12, color: 'var(--text-4)', marginTop: 2 }}>{userData.email}</p>
                             </motion.div>
@@ -70,12 +70,12 @@ export default function Profile() {
                     {/* Stats row */}
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginTop: 24 }}>
                         {[
-                            { label: 'Rating', value: '4.8 ★', color: 'var(--warning)' },
-                            { label: 'Total Rides', value: '124', color: 'var(--primary)' },
+                            { label: 'Rating', value: '4.8', color: 'var(--warning)' },
+                            { label: 'Total Rides', value: '124', color: 'var(--primary-text)' },
                             { label: 'Since', value: '2023', color: 'var(--success)' },
                         ].map(s => (
                             <div key={s.label} style={{ padding: 14, borderRadius: 14, background: 'var(--surface3)', border: '1px solid var(--border)', textAlign: 'center' }}>
-                                <div style={{ fontWeight: 800, fontSize: 18, color: s.color }}>{s.value}</div>
+                                <div style={{ fontWeight: 600, fontSize: 18, color: s.color }}>{s.value}</div>
                                 <div className="section-label" style={{ marginTop: 4 }}>{s.label}</div>
                             </div>
                         ))}
@@ -85,7 +85,7 @@ export default function Profile() {
                 {/* Badges */}
                 <div className="card" style={{ padding: 20 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-                        <Award size={16} style={{ color: 'var(--primary)' }} />
+                        <Award size={16} style={{ color: 'var(--primary-text)' }} />
                         <p className="section-label">Achievements</p>
                     </div>
                     <Badges />

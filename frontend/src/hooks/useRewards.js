@@ -9,9 +9,9 @@ const REWARDS_CATALOG = [
     { id: 1, name: 'Free Ride (₹50)', points: 500, value: 50, icon: createElement('img', { src: evImage, alt: 'EV', style: { width: 38, height: 28, objectFit: 'contain' } }) },
     { id: 2, name: 'Free Ride (₹100)', points: 1000, value: 100, icon: createElement('img', { src: sedanImage, alt: 'Sedan', style: { width: 44, height: 28, objectFit: 'contain' } }) },
     { id: 3, name: 'Free Ride (₹200)', points: 2000, value: 200, icon: createElement('img', { src: suvImage, alt: 'SUV', style: { width: 44, height: 28, objectFit: 'contain' } }) },
-    { id: 4, name: '10% Off Next Ride', points: 250, value: 10, icon: '🎫' },
-    { id: 5, name: '25% Off Next Ride', points: 600, value: 25, icon: '🎟️' },
-    { id: 6, name: 'Priority Support', points: 800, value: 0, icon: '⭐' },
+    { id: 4, name: '10% Off Next Ride', points: 250, value: 10, icon: 'ticket' },
+    { id: 5, name: '25% Off Next Ride', points: 600, value: 25, icon: 'ticket' },
+    { id: 6, name: 'Priority Support', points: 800, value: 0, icon: 'star' },
 ];
 
 const useRewards = () => {

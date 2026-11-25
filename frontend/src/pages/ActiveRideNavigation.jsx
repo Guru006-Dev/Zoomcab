@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
+import { MapContainer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Phone, MessageCircle, Navigation2, User } from 'lucide-react';
+import { ArrowLeft, Phone, ChatCircle as MessageCircle, NavigationArrow as Navigation2, User } from '@phosphor-icons/react';
 import { useNavigate } from 'react-router-dom';
 import L from 'leaflet';
 
@@ -9,6 +9,7 @@ import L from 'leaflet';
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+import MapTiles from '../components/MapTiles';
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -19,10 +20,10 @@ L.Icon.Default.mergeOptions({
 
 // Uber-style marker icons (blue pins)
 const uberMarkerIcon = new L.divIcon({
-    html: `< div style = "position: relative;" >
+    html: `<div style="position: relative;">
         <div style="width: 40px; height: 50px; background: #1E88E5; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); box-shadow: 0 4px 8px rgba(0,0,0,0.3);"></div>
-        <div style="position: absolute; top: 10px; left: 10px; width: 20px; height: 20px; background: white; border-radius: 50%; transform: rotate(45deg);"></div>
-    </div > `,
+        <div style="position: absolute; top: 10px; left: 10px; width: 20px; height: 20px; background: var(--surface); border-radius: 50%; transform: rotate(45deg);"></div>
+    </div>`,
     iconSize: [40, 50],
     iconAnchor: [20, 50],
     className: 'uber-marker',
@@ -90,16 +91,8 @@ const ActiveRideNavigation = () => {
                     style={{ height: '100%', width: '100%' }}
                 >
                     {/* Satellite/Hybrid View - Using Esri World Imagery */}
-                    <TileLayer
-                        attribution='&copy; Esri'
-                        url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-                    />
+                    <MapTiles />
                     {/* Road Labels Overlay */}
-                    <TileLayer
-                        attribution='&copy; CartoDB'
-                        url="https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}.png"
-                        opacity={0.8}
-                    />
 
                     {/* Orange Dashed Route Line (Uber style) */}
                     <Polyline
@@ -132,9 +125,9 @@ const ActiveRideNavigation = () => {
             {/* Top-right back button */}
             <button
                 onClick={() => navigate('/driver')}
-                className="absolute top-4 right-4 z-20 p-3 bg-white rounded-full shadow-lg hover:bg-gray-100 transition-colors"
+                className="absolute top-4 right-4 z-20 p-3 bg-[#181818] rounded-full shadow-lg hover:bg-white/10 transition-colors"
             >
-                <ArrowLeft size={20} className="text-black" />
+                <ArrowLeft size={20} className="text-white" />
             </button>
 
             {/* Bottom Driver Card - Uber Style */}
@@ -142,25 +135,25 @@ const ActiveRideNavigation = () => {
                 <motion.div
                     initial={{ y: 100 }}
                     animate={{ y: 0 }}
-                    className="bg-white rounded-t-3xl shadow-2xl p-6"
+                    className="bg-[#181818] rounded-t-3xl shadow-2xl p-6"
                 >
                     {/* Driver Info Row */}
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-4">
                             {/* Driver Avatar */}
-                            <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-pink-600 rounded-full flex items-center justify-center shadow-lg">
+                            <div className="w-16 h-16 bg-[#5B4FE8] rounded-full flex items-center justify-center shadow-lg">
                                 <User size={32} className="text-white" />
                             </div>
 
                             {/* Driver Details */}
                             <div>
-                                <h3 className="text-lg font-bold text-gray-900">{rideData.driver}</h3>
-                                <div className="flex items-center gap-2 text-sm text-gray-600">
-                                    <span>⭐ {rideData.rating}</span>
+                                <h3 className="text-lg font-semibold text-white">{rideData.driver}</h3>
+                                <div className="flex items-center gap-2 text-sm text-gray-400">
+                                    <span>Rating {rideData.rating}</span>
                                     <span>•</span>
                                     <span>{rideData.vehicle}</span>
                                 </div>
-                                <div className="text-sm font-semibold text-gray-800 mt-1">
+                                <div className="text-sm font-semibold text-gray-200 mt-1">
                                     {rideData.vehicleNumber}
                                 </div>
                             </div>
@@ -168,24 +161,24 @@ const ActiveRideNavigation = () => {
 
                         {/* ETA Badge */}
                         <div className="text-right">
-                            <div className="text-xs text-gray-500 uppercase tracking-wider">ETA</div>
-                            <div className="text-2xl font-black text-green-600">{rideData.eta}</div>
+                            <div className="text-xs text-gray-400 uppercase tracking-wider">ETA</div>
+                            <div className="text-2xl font-semibold text-green-600">{rideData.eta}</div>
                         </div>
                     </div>
 
                     {/* Destination Info */}
-                    <div className="mb-4 p-3 bg-gray-50 rounded-xl">
+                    <div className="mb-4 p-3 bg-white/10 rounded-xl">
                         <div className="flex items-center gap-2 mb-1">
                             <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                            <span className="text-xs text-gray-500">Pickup</span>
+                            <span className="text-xs text-gray-400">Pickup</span>
                         </div>
-                        <div className="text-sm font-semibold text-gray-900 ml-4">{rideData.pickup.name}</div>
+                        <div className="text-sm font-semibold text-white ml-4">{rideData.pickup.name}</div>
 
                         <div className="flex items-center gap-2 mb-1 mt-3">
                             <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                            <span className="text-xs text-gray-500">Drop-off</span>
+                            <span className="text-xs text-gray-400">Drop-off</span>
                         </div>
-                        <div className="text-sm font-semibold text-gray-900 ml-4">{rideData.dropoff.name}</div>
+                        <div className="text-sm font-semibold text-white ml-4">{rideData.dropoff.name}</div>
                     </div>
 
                     {/* Action Buttons */}
