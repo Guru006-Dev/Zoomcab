@@ -87,7 +87,7 @@ export default function Settings() {
 
                 {/* Logout */}
                 <button
-                    onClick={() => { localStorage.clear(); navigate('/'); }}
+                    onClick={() => { localStorage.clear(); navigate('/login'); }}
                     style={{
                         display: 'flex', alignItems: 'center', gap: 10, padding: '14px 20px',
                         borderRadius: 16, border: '1px solid #FECACA', background: '#FEF2F2',
