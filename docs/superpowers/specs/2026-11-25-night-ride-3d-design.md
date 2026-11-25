@@ -53,6 +53,8 @@ the footer. The tagline reveal and 2D story are removed.
 - Real roads and 12,828 building footprints from OpenStreetMap. Heights, building styles, road
   widths, trees and streetlights are invented, and the page says "stylised".
 - Buildings never cover a road; ones that cannot fit are dropped.
+- Roads are clearly visible from every camera height, with kerbs and centre lines. The route and
+  taxis sit on the road surface and are sized to it in close-ups.
 - Detailed models near the close-up shots, simple ones elsewhere.
 - Taxis are the block models built in code. A downloaded model may replace them later.
 - Lit windows, streetlights and soft glow for the night look.
