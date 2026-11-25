@@ -1,26 +1,29 @@
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
-import Profile from './pages/Profile';
-import MyRides from './pages/MyRides';
-import Wallet from './pages/Wallet';
-import Settings from './pages/Settings';
-import Login from './pages/Login';
-import Home from './pages/Home';
-import Payment from './pages/Payment';
-import DriverDashboard from './pages/DriverDashboard';
-import SavedPlaces from './pages/SavedPlaces';
-import RidePreferences from './pages/RidePreferences';
-import ScheduleRide from './pages/ScheduleRide';
-import Rewards from './pages/Rewards';
-import Referrals from './pages/Referrals';
-import DriverEarnings from './pages/DriverEarnings';
-import DriverStats from './pages/DriverStats';
-import RideAcceptance from './pages/RideAcceptance';
-import BreakScheduler from './pages/BreakScheduler';
-import ExpenseTracker from './pages/ExpenseTracker';
-import ActiveRideNavigation from './pages/ActiveRideNavigation';
-import Concierge from './pages/Concierge';
-import NotFound from './pages/NotFound';
+import { lazy, Suspense } from 'react';
+
+const Landing = lazy(() => import('./landing/Landing'));
+const Profile = lazy(() => import('./pages/Profile'));
+const MyRides = lazy(() => import('./pages/MyRides'));
+const Wallet = lazy(() => import('./pages/Wallet'));
+const Settings = lazy(() => import('./pages/Settings'));
+const Login = lazy(() => import('./pages/Login'));
+const Home = lazy(() => import('./pages/Home'));
+const Payment = lazy(() => import('./pages/Payment'));
+const DriverDashboard = lazy(() => import('./pages/DriverDashboard'));
+const SavedPlaces = lazy(() => import('./pages/SavedPlaces'));
+const RidePreferences = lazy(() => import('./pages/RidePreferences'));
+const ScheduleRide = lazy(() => import('./pages/ScheduleRide'));
+const Rewards = lazy(() => import('./pages/Rewards'));
+const Referrals = lazy(() => import('./pages/Referrals'));
+const DriverEarnings = lazy(() => import('./pages/DriverEarnings'));
+const DriverStats = lazy(() => import('./pages/DriverStats'));
+const RideAcceptance = lazy(() => import('./pages/RideAcceptance'));
+const BreakScheduler = lazy(() => import('./pages/BreakScheduler'));
+const ExpenseTracker = lazy(() => import('./pages/ExpenseTracker'));
+const ActiveRideNavigation = lazy(() => import('./pages/ActiveRideNavigation'));
+const Concierge = lazy(() => import('./pages/Concierge'));
+const NotFound = lazy(() => import('./pages/NotFound'));
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -28,7 +31,8 @@ function AnimatedRoutes() {
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
-        <Route path="/" element={<Login />} />
+        <Route path="/" element={<Landing />} />
+        <Route path="/login" element={<Login />} />
         <Route path="/home" element={<Home />} />
         <Route path="/payment" element={<Payment />} />
         <Route path="/driver" element={<DriverDashboard />} />
@@ -57,7 +61,9 @@ function AnimatedRoutes() {
 function App() {
   return (
     <Router>
-      <AnimatedRoutes />
+      <Suspense fallback={<div />}>
+        <AnimatedRoutes />
+      </Suspense>
     </Router>
   );
 }

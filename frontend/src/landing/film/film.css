@@ -1,0 +1,33 @@
+.lp-film { height: 700vh; }
+.lp-film-view { position: sticky; top: 0; height: 100svh; overflow: hidden; background: #05060a; }
+.lp-film-stage, .lp-film-stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+.lp-caption {
+  position: absolute; left: 48px; right: 48px; bottom: 10vh; max-width: 640px;
+  opacity: 0; transform: translateY(16px); pointer-events: none;
+  transition: opacity 500ms cubic-bezier(0.22, 1, 0.36, 1), transform 500ms cubic-bezier(0.22, 1, 0.36, 1);
+  text-shadow: 0 2px 24px #000;
+}
+.lp-caption[data-on='true'] { opacity: 1; transform: none; pointer-events: auto; }
+.lp .lp-caption h1, .lp .lp-caption h2 { font-size: 3.75rem; line-height: 1; letter-spacing: -0.03em; margin-bottom: 16px; }
+.lp .lp-caption p { color: #d5d7e4; font-size: 1.125rem; line-height: 1.75rem; }
+
+.lp .lp-film-skip { position: absolute; left: -9999px; z-index: 2; }
+.lp .lp-film-skip:focus { left: 16px; top: 80px; background: #fff; color: #000; padding: 8px 12px; border-radius: 8px; }
+.lp-film-loading { position: absolute; right: 24px; bottom: 64px; font-size: 0.875rem; }
+.lp .lp-film-sound {
+  position: absolute; right: 24px; top: 24px; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 8px 16px;
+  border-radius: 999px; border: 1px solid #3a3d4d; background: #0d0f17; color: #fff; font: inherit; font-weight: 600; cursor: pointer;
+}
+.lp-film-badge { position: absolute; right: 24px; bottom: 24px; padding: 4px 12px; border: 1px solid #454545; border-radius: 999px; background: #000; font-size: 0.75rem; color: #b4b4b4; }
+
+@media (max-width: 1100px) {
+  .lp .lp-film-sound { top: 96px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lp-caption { transform: none; transition: opacity 300ms linear; }
+}
+
+.lp-film-announce { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.lp-film:focus { outline: none; }

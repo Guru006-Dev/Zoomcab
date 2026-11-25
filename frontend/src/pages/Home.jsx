@@ -336,7 +336,7 @@ export default function Home() {
 
                 {/* Logout */}
                 <button
-                    onClick={() => { localStorage.clear(); navigate('/'); }}
+                    onClick={() => { localStorage.clear(); navigate('/login'); }}
                     style={{
                         fontSize: 12, color: 'var(--text-4)', background: 'none',
                         border: 'none', cursor: 'pointer', fontFamily: 'var(--font)',

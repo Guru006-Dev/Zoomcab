@@ -25,7 +25,7 @@ const SideMenu = ({ isOpen, onClose }) => {
 
     const handleLogout = () => {
         onClose();
-        navigate('/');
+        navigate('/login');
     };
 
     return (
