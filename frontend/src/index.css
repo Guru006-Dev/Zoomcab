@@ -7,12 +7,15 @@
 ═══════════════════════════════════════════════════════════ */
 
 /* ── Reset ── */
+/* in a layer so that utility spacing classes still apply */
+@layer base {
 *,
 *::before,
 *::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+}
 }
 
 html {

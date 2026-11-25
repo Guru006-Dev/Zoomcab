@@ -67,7 +67,7 @@ const Badges = () => {
                         */}
                         <div className="text-4xl mb-2 relative">
                             {badge.unlocked ? (
-                                badge.icon
+                                <Glyph name={badge.icon} />
                             ) : (
                                 <>
                                     <div className="blur-sm"><Glyph name={badge.icon} /></div>

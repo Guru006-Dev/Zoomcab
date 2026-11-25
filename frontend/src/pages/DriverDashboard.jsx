@@ -159,11 +159,11 @@ const DriverDashboard = () => {
                 }}
             >
                 {/* Brand */}
-                <div data-side-extra style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 4, position: 'relative' }}>
+                <div data-side-extra style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 4, flexDirection: 'column', gap: 6 }}>
                     <Brand />
                     <span
                         className="badge badge-primary"
-                        style={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)', scale: 0.85, transformOrigin: 'right center' }}
+                        style={{ scale: 0.85 }}
                     >Driver</span>
                 </div>
 

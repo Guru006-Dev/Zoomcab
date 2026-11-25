@@ -72,3 +72,12 @@ test('no dead links and a readable brand', () => {
 test('map marker html is well formed', () => {
     expect(offenders(/< div|<\/div >/)).toEqual([]);
 });
+
+test('the css reset does not override utility spacing', () => {
+    expect(src('./index.css')).toMatch(/@layer base \{\s*\*,/);
+});
+
+test('icon names are never printed as words', () => {
+    expect(src('./components/Badges.jsx')).not.toMatch(/^\s*badge\.icon\s*$/m);
+    expect(src('./components/Glyph.jsx')).toContain('isValidElement');
+});
